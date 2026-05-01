@@ -147,16 +147,15 @@ for PROJECT_PATH in "${PROJECTS[@]}"; do
   info "Scanning: $PROJECT_NAME ($PROJECT_PATH)"
 
   if $DRY_RUN; then
-    info "  [DRY RUN] Would run: opencode run --command doc-garden in $PROJECT_PATH"
+    info "  [DRY RUN] Would run: opencode run --command timely-doc-garden in $PROJECT_PATH"
     continue
   fi
 
-  # Run doc-garden via opencode
-  info "  Running doc-garden..."
+  info "  Running timely-doc-garden..."
   if opencode run \
-    --command doc-garden \
+    --command timely-doc-garden \
     --project "$PROJECT_PATH" \
-    "Run doc-garden: scan all project docs for stale references, auto-fix safe corrections and semantic drift, report only items needing human review. Follow the doc-garden skill instructions exactly. SKILL_DIR=$SKILL_DIR" \
+    "Run timely-doc-garden: scan all project docs for stale references, auto-fix safe corrections and semantic drift, report only items needing human review. Follow the timely-doc-garden skill instructions exactly. SKILL_DIR=$SKILL_DIR" \
     > "$LOG_FILE" 2>&1; then
 
     # Check for REVIEW items in report

@@ -1,11 +1,11 @@
 ---
-name: doc-garden
+name: timely-doc-garden
 description: >
   Scan project documentation (AGENTS.md, docs/) for stale references, outdated facts,
   and drift from actual code. Auto-fixes safe corrections (line numbers, paths) and
   semantically updates outdated descriptions. Only reports items requiring human judgment.
   Use when: maintaining documentation freshness, running scheduled doc-code consistency
-  checks, after significant refactoring, or when invoked by the doc-garden scheduled task.
+  checks, after significant refactoring, or when invoked by the scheduled task.
   Triggers: "doc garden", "doc gardening", "check docs", "documentation drift",
   "doc-code consistency", "scan docs", "stale docs", "文档维护", "检查文档是否过时".
 ---
@@ -141,4 +141,4 @@ Write report to `.sisyphus/doc-garden-report.md` using this format:
 - `SKILL_DIR` is set by the `run-scheduled.sh` wrapper to the skill's directory
 - If `SKILL_DIR` is not set, default to the directory containing this SKILL.md
 - Python 3.8+ required for scripts
-- Works with `opencode run --command doc-garden` for non-interactive execution
+- Works with `opencode run --command timely-doc-garden` for non-interactive execution
