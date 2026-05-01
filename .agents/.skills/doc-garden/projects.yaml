@@ -1,0 +1,24 @@
+# Doc Garden: Project Registry
+#
+# Register projects here for scheduled doc-garden scans.
+# The run-scheduled.sh script reads this file and runs
+# doc-garden on each registered project.
+#
+# Usage:
+#   1. Add your project below
+#   2. Run: bash scripts/run-scheduled.sh
+#   3. Or set up cron/launchd to run run-scheduled.sh periodically
+#
+# Fields:
+#   path:     Absolute path to project root (required)
+#   schedule: cron-style frequency hint (informational, actual schedule is in launchd/cron)
+#   notify:   How to notify on REVIEW items (default: none)
+#   enabled:  Whether to include in scheduled runs (default: true)
+
+projects:
+  - path: /Users/chenchaowen/Desktop/Project/quant-invest2
+    schedule: weekly
+    notify: wechat
+    enabled: true
+
+  # Add more projects below:
