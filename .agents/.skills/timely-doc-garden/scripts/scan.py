@@ -27,8 +27,18 @@ CODE_BLOCK = re.compile(r"```[\s\S]*?```", re.MULTILINE)
 INLINE_CODE = re.compile(r"`[^`\n]+`")
 
 
-def extract_refs(md_path: Path) -> list[dict]:
-    """Extract file:line references from a markdown file."""
+def extract_refs(md_path: Path, project_root: Path, src_prefixes: list[Path] | None = None) -> list[dict]:
+    """Extract file:line references from a markdown file.
+
+    Args:
+        md_path: Path to the markdown file.
+        project_root: Project root directory.
+        src_prefixes: Additional source directories to search when resolving
+            relative paths (e.g., [project_root / "src/quant/"]).
+    """
+    if src_prefixes is None:
+        src_prefixes = []
+
     content = md_path.read_text(encoding="utf-8", errors="replace")
     # Remove code blocks first (they often contain example references)
     stripped = CODE_BLOCK.sub("", content)
@@ -55,6 +65,19 @@ def extract_refs(md_path: Path) -> list[dict]:
                 if candidate.exists():
                     target = candidate
                     break
+        # Try source prefixes (e.g., src/quant/ for AGENTS.md using module-relative paths)
+        if not target.exists() and src_prefixes:
+            for prefix in src_prefixes:
+                candidate = prefix / ref_file
+                if candidate.exists():
+                    target = candidate
+                    break
+        # Try rglob as last resort
+        if not target.exists():
+            filename = Path(ref_file).name
+            candidates = list(project_root.rglob(filename))
+            if len(candidates) == 1:
+                target = candidates[0]
 
         status = "healthy"
         actual_content = None
@@ -87,9 +110,38 @@ def extract_refs(md_path: Path) -> list[dict]:
     return refs
 
 
+def _detect_src_prefixes(project_root: Path) -> list[Path]:
+    """Detect common source directory prefixes from AGENTS.md STRUCTURE section.
+
+    Looks for tree entries like '├── src/quant/' or '└── lib/myapp/' and
+    returns [project_root / "src/quant/", project_root / "lib/myapp/"].
+    """
+    agents_md = project_root / "AGENTS.md"
+    if not agents_md.exists():
+        return []
+
+    prefixes: list[Path] = []
+    content = agents_md.read_text(encoding="utf-8", errors="replace")
+    in_structure = False
+    for line in content.splitlines():
+        if line.strip().startswith("```"):
+            in_structure = not in_structure
+            continue
+        if not in_structure:
+            continue
+        for entry in line.split("├──")[1:] if "├──" in line else line.split("└──")[1:] if "└──" in line else []:
+            entry = entry.strip().rstrip("/")
+            if entry and "/" in entry and not entry.startswith("."):
+                candidate = project_root / entry
+                if candidate.is_dir():
+                    prefixes.append(candidate)
+    return prefixes
+
+
 def scan_project(project_root: Path) -> dict:
     """Scan all doc files in a project."""
-    # Collect doc files
+    src_prefixes = _detect_src_prefixes(project_root)
+
     md_files = []
     agents_md = project_root / "AGENTS.md"
     if agents_md.exists():
@@ -126,7 +178,7 @@ def scan_project(project_root: Path) -> dict:
     }
 
     for md in md_files:
-        refs = extract_refs(md)
+        refs = extract_refs(md, project_root, src_prefixes)
         file_detail = {
             "file": str(md.relative_to(project_root)),
             "ref_count": len(refs),

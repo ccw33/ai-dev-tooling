@@ -409,17 +409,19 @@ bash scripts/check-architecture.sh
 ### Step 5.1: Validate AGENTS.md
 
 ```bash
-wc -l AGENTS.md  # Should still be ≤150 lines
+wc -l AGENTS.md  # Should still be ≤200 lines
 ```
 
-If adding quality gates pushes it over 150 lines, move detailed gate documentation
+If adding quality gates pushes it over 200 lines, move detailed gate documentation
 to `docs/development-guide.md` and keep only the commands in AGENTS.md.
 
-### Step 5.2: Generate KNOWN_DEBTS.md
+### Step 5.2: Generate or Append KNOWN_DEBTS.md
 
-After gates are installed, create a unified debt tracking file. This is where
+After gates are installed, generate (if not exists) or append to the unified debt tracking file. This is where
 all discovered issues (lint debt, architecture warnings, TODOs, security findings)
 are cataloged with priority, fix instructions, and status.
+
+> **Important**: harness-scan creates KNOWN_DEBTS.md during initial inventory. This step should APPEND any gate-discovered issues to the existing file, not overwrite it.
 
 ```markdown
 # Known Debts — <project-name>

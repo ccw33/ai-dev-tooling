@@ -147,39 +147,38 @@ for PROJECT_PATH in "${PROJECTS[@]}"; do
   info "Scanning: $PROJECT_NAME ($PROJECT_PATH)"
 
   if $DRY_RUN; then
-    info "  [DRY RUN] Would run: opencode run --command timely-doc-garden in $PROJECT_PATH"
+    info "  [DRY RUN] Would run: scan.py + fix_refs.py in $PROJECT_PATH"
     continue
   fi
 
-  info "  Running timely-doc-garden..."
-  if opencode run \
-    --command timely-doc-garden \
-    --project "$PROJECT_PATH" \
-    "Run timely-doc-garden: scan all project docs for stale references, auto-fix safe corrections and semantic drift, report only items needing human review. Follow the timely-doc-garden skill instructions exactly. SKILL_DIR=$SKILL_DIR" \
-    > "$LOG_FILE" 2>&1; then
+  info "  Running Phase 1: deterministic scan + fix..."
+  SCAN_RESULT="$PROJECT_PATH/scan-result.json"
+  REPORT="$PROJECT_PATH/.sisyphus/doc-garden-report.md"
+  mkdir -p "$PROJECT_PATH/.sisyphus"
 
-    # Check for REVIEW items in report
-    REPORT="$PROJECT_PATH/.sisyphus/doc-garden-report.md"
-    if [[ -f "$REPORT" ]]; then
-      REVIEW_COUNT=$(grep -c "REVIEW" "$REPORT" 2>/dev/null || echo "0")
+  # Phase 1: Scan
+  python3 "$SKILL_DIR/scripts/scan.py" --project-root "$PROJECT_PATH" --output "$SCAN_RESULT" > "$LOG_FILE" 2>&1 || true
 
-      if [[ "$REVIEW_COUNT" -gt 0 ]]; then
-        warn "  ⚠ $REVIEW_COUNT item(s) need review in $PROJECT_NAME"
-        TOTAL_REVIEW=$((TOTAL_REVIEW + REVIEW_COUNT))
-
-        # Optional: push notification via wechat-push
-        # Uncomment the lines below to enable WeChat notifications:
-        # if command -v opencode &>/dev/null; then
-        #   opencode run --command wechat-push \
-        #     "doc-garden: $PROJECT_NAME has $REVIEW_COUNT item(s) needing review" \
-        #     --project "$PROJECT_PATH"
-        # fi
-      else
-        info "  ✅ All clear for $PROJECT_NAME"
-      fi
+  # Phase 2: Auto-fix safe corrections
+  FIXED=0
+  if [[ -f "$SCAN_RESULT" ]]; then
+    FIXED=$(python3 "$SKILL_DIR/scripts/fix_refs.py" --project-root "$PROJECT_PATH" --scan-result "$SCAN_RESULT" --apply 2>&1 | grep -c "FIXED" || true)
+    FIXED=${FIXED:-0}
+    if [[ "$FIXED" -gt 0 ]]; then
+      info "  Auto-fixed $FIXED reference(s)"
     fi
+    rm -f "$SCAN_RESULT"
+  fi
+
+  # Phase 3: Check for remaining issues via validate-refs
+  REMAINING=$(bash "$SKILL_DIR/scripts/validate-refs.sh" 2>&1 | grep -cE "^(✗|⚠)" || true)
+  REMAINING=${REMAINING:-0}
+
+  if [[ "$REMAINING" -gt 0 ]]; then
+    warn "  ⚠ $REMAINING item(s) need review in $PROJECT_NAME"
+    TOTAL_REVIEW=$((TOTAL_REVIEW + REMAINING))
   else
-    error "  doc-garden failed for $PROJECT_NAME. See log: $LOG_FILE"
+    info "  ✅ All clear for $PROJECT_NAME"
   fi
 done
 

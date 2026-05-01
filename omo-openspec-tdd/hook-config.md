@@ -233,7 +233,7 @@ bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh
 
 **pre-push：scan → auto-fix → warn（能修则修）**
 
-脚本位置：`scripts/check-doc-staleness.sh`
+脚本位置：`.agents/.skills/timely-doc-garden/scripts/check-doc-staleness.sh`
 
 ```bash
 #!/bin/bash

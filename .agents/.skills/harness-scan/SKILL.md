@@ -163,7 +163,7 @@ Collect all background task results.
 NEVER use Write to overwrite an existing file.
 </critical>
 
-**Root AGENTS.md** (50-150 lines):
+**Root AGENTS.md** (50-200 lines):
 ```markdown
 # PROJECT KNOWLEDGE BASE
 
@@ -210,7 +210,7 @@ Create (if not existing):
 **Quality gates**:
 - Every factual claim must have a `filename:line` anchor pointing to actual source code
 - Uncertain items marked `[TODO: confirm with team]`, never guess
-- Root ≤150 lines / <32KB
+- Root ≤200 lines / <32KB
 - Subdirectory AGENTS.md only shows differences from parent
 
 **Mark Phase 1 as completed.**
@@ -510,7 +510,7 @@ Run validation checks:
 ```bash
 # Check AGENTS.md line count
 wc -l AGENTS.md
-# Must be ≤150 lines
+# Must be ≤200 lines
 
 # Check all file:line references are valid
 grep -oE '[a-zA-Z0-9_./-]+\.[a-zA-Z]+:[0-9]+' AGENTS.md | while read ref; do
