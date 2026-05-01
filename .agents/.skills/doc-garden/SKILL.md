@@ -95,9 +95,9 @@ python3 "$SKILL_DIR/scripts/fix_refs.py" --project-root . --apply
 ```
 
 This fixes:
-- Line number shifts (finds nearest matching content, updates line number)
 - Path renames (if a file was moved/renamed, updates path)
-- Cannot-determine items are left for Phase 2's AI fixes
+- Line number shifts for in-range shifted refs (exact/substring content matching)
+- Out-of-range or ambiguous shifts are left for Phase 2's AI fixes
 
 ### Phase 4: Generate Report
 

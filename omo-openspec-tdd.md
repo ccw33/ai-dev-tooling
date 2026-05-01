@@ -190,7 +190,7 @@ openspec --version            # 确认 1.3.1+
 |------|---------|------|
 | **盘点 + 分层** | OmO `/init-deep` | 自动扫描项目、生成 hierarchical AGENTS.md，天然做这件事 |
 | **设卡** | Prometheus 面谈模式 | 需要理解项目具体有哪些检查、缺什么，面谈模式先探索再确认 |
-| **维护** | `.sisyphus/rules/` + OpenSpec archive | 规则以文件形式持续生效，archive 机制做知识积累 |
+| **维护** | `doc-garden` Skill + 三层 Hook 体系 | 实时校验 + Git 保底 + 定时全量扫描（详见 4.5 节） |
 
 **为什么不用 OpenSpec 自定义 Schema 来做 Harness Init？** 因为 Harness Init 是"一次性入场动作"而非"反复做的功能开发流程"。OpenSpec 的 propose→apply→archive 循环适合迭代性的功能开发，硬套到入场流程上会让简单事情变复杂。
 
@@ -397,8 +397,9 @@ Phase 2: AI 深度扫描 + 即时修复（2-5 分钟）
   → 不确定的 → 标记 [REVIEW]
     ↓
 Phase 3: fix_refs.py（L1 自动修复，< 5 秒）
-  → 修复行号偏移
   → 修复路径重命名
+  → 修复行号偏移（精确/子串匹配）
+  → 无法确定的退回 Phase 2 AI 处理
     ↓
 Phase 4: 报告
   → 保存到 .sisyphus/doc-garden-report.md
@@ -431,7 +432,7 @@ Phase 4: 报告
 ├─────────────────────────────────────────────────────────────────┤
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
 │                                                                  │
-│   pre-commit: validate-agents-refs.sh  →  校验引用存在性，阻断提交  │
+│   pre-commit: validate-refs.sh  →  校验引用存在性，阻断提交          │
 │   pre-push: check-doc-staleness.sh  →  检查过期，警告不阻断        │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -512,37 +513,12 @@ OpenCode 不在运行时（人工编辑、CI 合并），由 git hooks 保底。
 
 **pre-commit：校验 AGENTS.md 引用存在性**
 
-脚本位置：`scripts/hooks/validate-agents-refs.sh`（需在项目中创建）
+复用 `validate-refs.sh`（已存在于 `.agents/.skills/doc-garden/scripts/`）：
 
 ```bash
 #!/bin/bash
-# 校验 AGENTS.md 中 file:line 引用是否还存在
-# pre-commit 触发，引用断裂则阻断提交
-set -euo pipefail
-
-AGENTS_FILES=$(find . -name "AGENTS.md" -not -path "*/node_modules/*" 2>/dev/null)
-ERRORS=0
-
-for agents_file in $AGENTS_FILES; do
-  # 提取所有 file:line 引用（如 src/foo/bar.ts:42）
-  grep -oE '[a-zA-Z0-9_./-]+\.[a-zA-Z]+:[0-9]+' "$agents_file" | while read -r ref; do
-    file=$(echo "$ref" | cut -d: -f1)
-    line=$(echo "$ref" | cut -d: -f2)
-
-    if [ ! -f "$file" ]; then
-      echo "❌ $agents_file: 引用文件不存在 — $ref"
-      exit 1
-    fi
-
-    total_lines=$(wc -l < "$file")
-    if [ "$line" -gt "$total_lines" ]; then
-      echo "⚠️  $agents_file: 行号越界 — $ref（文件只有 $total_lines 行）"
-      exit 1
-    fi
-  done || ERRORS=$((ERRORS + 1))
-done
-
-exit $ERRORS
+# 在项目根目录的 pre-commit hook 中调用
+bash .agents/.skills/doc-garden/scripts/validate-refs.sh
 ```
 
 **pre-push：检查文档过期**
@@ -584,13 +560,16 @@ exit 0  # 只警告，不阻断
 
 ```bash
 # 方式 A：Husky（如果项目已有）
-npx husky add .husky/pre-commit "bash scripts/hooks/validate-agents-refs.sh"
-npx husky add .husky/pre-push "bash scripts/hooks/check-doc-staleness.sh"
+npx husky add .husky/pre-commit "bash .agents/.skills/doc-garden/scripts/validate-refs.sh"
+npx husky add .husky/pre-push "bash .agents/.skills/doc-garden/scripts/check-doc-staleness.sh"
 
 # 方式 B：直接写 .githooks（无依赖）
 mkdir -p .githooks
-cp scripts/hooks/validate-agents-refs.sh .githooks/pre-commit
-cp scripts/hooks/check-doc-staleness.sh .githooks/pre-push
+echo '#!/bin/bash' > .githooks/pre-commit
+echo 'bash .agents/.skills/doc-garden/scripts/validate-refs.sh' >> .githooks/pre-commit
+echo '#!/bin/bash' > .githooks/pre-push
+echo 'bash .agents/.skills/doc-garden/scripts/check-doc-staleness.sh' >> .githooks/pre-push
+chmod +x .githooks/pre-commit .githooks/pre-push
 git config core.hooksPath .githooks
 ```
 
@@ -610,7 +589,7 @@ git config core.hooksPath .githooks
 |------|------|---------|
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
 | **每次 Session 结束** | 轻量 doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
-| **每次提交** | AGENTS.md 引用存在性校验 | git pre-commit → `validate-agents-refs.sh` |
+| **每次提交** | AGENTS.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
 | **每次推送** | 文档过期检测 | git pre-push → `check-doc-staleness.sh`（只警告） |
 | 每周 | doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |
 | 每两周 | 规则回顾（棘轮收紧） | 人工：看 doc-garden 报告中的违规趋势 |
@@ -1060,7 +1039,8 @@ git diff openspec/specs/    # 查看归档后的 spec 变更
 |------|------|------|
 | Skill 定义 | `dev-tooling/.agents/.skills/doc-garden/SKILL.md` | 四阶段扫描+修复指令 |
 | 扫描脚本 | `dev-tooling/.agents/.skills/doc-garden/scripts/scan.py` | Phase 1: 确定性引用扫描 |
-| 修复脚本 | `dev-tooling/.agents/.skills/doc-garden/scripts/fix_refs.py` | Phase 3: L1 自动修复 |
+| 修复脚本 | `dev-tooling/.agents/.skills/doc-garden/scripts/fix_refs.py` | Phase 3: L1 自动修复（路径重命名 + 行号偏移） |
+| 引用校验 | `dev-tooling/.agents/.skills/doc-garden/scripts/validate-refs.sh` | 实时/Git hook: 引用存在性校验 |
 | 定时执行器 | `dev-tooling/.agents/.skills/doc-garden/scripts/run-scheduled.sh` | 读取 projects.yaml，逐项目执行 |
 | 项目注册表 | `dev-tooling/.agents/.skills/doc-garden/projects.yaml` | 用户注册需要定时扫描的项目 |
 | 漂移模式 | `dev-tooling/.agents/.skills/doc-garden/references/drift-patterns.md` | 10 种常见文档过时模式 |

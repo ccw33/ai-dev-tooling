@@ -79,23 +79,27 @@ def fix_shifted_ref(ref: dict, project_root: Path) -> dict | None:
     if not file_path.exists():
         return None
 
-    actual = ref.get("actual_content", "")
-    if actual and "shifted" not in ref.get("status", ""):
+    status = ref.get("status", "")
+    if "shifted" not in status:
         return None
 
-    # We need the ORIGINAL content the reference pointed to
-    # Since scan.py already read the actual line, we use it as the search target
-    # But for shifted refs, the actual_content is what's at the old line number
-    # which is wrong content. We need to search for what SHOULD be there.
-    # Strategy: look for nearby unique strings in the doc context
-
-    # Simple approach: if the file exists and the line is just out of range
-    if "out_of_range" in ref.get("status", ""):
-        lines = file_path.read_text(encoding="utf-8", errors="replace").splitlines()
-        # Can't determine — return None for AI to handle
+    if "out_of_range" in status:
         return None
 
-    return None  # Most shifted refs need AI judgment; script handles only simple cases
+    new_line = find_best_line(file_path, ref.get("actual_content", ""))
+    if new_line is None:
+        return None
+
+    return {
+        "type": "line_shift",
+        "doc_file": ref["doc_file"],
+        "old_ref": ref["ref_text"],
+        "old_path": ref["ref_file"],
+        "old_line": ref["ref_line"],
+        "new_line": new_line,
+        "new_ref": f"{ref['ref_file']}:{new_line}",
+        "resolved": str(file_path),
+    }
 
 
 def fix_broken_path_ref(ref: dict, project_root: Path) -> dict | None:
