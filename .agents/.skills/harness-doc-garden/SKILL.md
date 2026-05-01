@@ -214,6 +214,10 @@ Installed:
 
 Project registered in: .agents/.skills/timely-doc-garden/projects.yaml
 Report location: .sisyphus/doc-garden-report.md
+
+Doc-garden will also keep KNOWN_DEBTS.md (from /harness-gate) fresh:
+  - Weekly scans check debt references for stale file:line
+  - Pre-push auto-fixes path renames and line shifts in KNOWN_DEBTS.md
 ```
 
 ## Troubleshooting

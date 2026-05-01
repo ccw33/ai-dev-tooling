@@ -79,6 +79,16 @@ For each doc file (AGENTS.md, then docs/**/*.md), read and check every claim aga
 - If root AGENTS.md exceeds 100 lines or 32KB, add a note at the bottom:
   `<!-- doc-garden: AGENTS.md is N lines. Consider moving details to docs/. -->`
 
+#### 2.8 KNOWN_DEBTS.md Freshness Check
+- Read `KNOWN_DEBTS.md` if it exists (created by `/harness-gate`)
+- For each debt entry with a `**Location**` or `file:line` reference:
+  - Verify referenced files/lines still exist
+  - If a lint error count is listed (e.g., "271 个 E402"), re-run the check command to see if count changed → update the number
+  - If a debt item's fix has been applied (file deleted, import added, etc.) → mark `**Status**: done` and add the resolution date
+  - If new common issues have appeared since last scan → add new entries following the priority format
+- **Fix**: update stale counts, mark resolved items, add newly discovered debts
+- **Never delete** debt entries without confirmation — only mark as done
+
 #### Fix Confidence Levels
 
 For each issue found:
@@ -132,6 +142,13 @@ Write report to `.sisyphus/doc-garden-report.md` using this format:
 - L1 fixed: N
 - L2 fixed: N
 - Review items: N
+
+## KNOWN_DEBTS.md Updates
+
+| Debt ID | What changed |
+|---------|-------------|
+
+(If no KNOWN_DEBTS.md or no changes, write "No debt tracking updates.")
 ```
 
 **Notification rule**: Only notify if there are REVIEW items. Silent otherwise.
