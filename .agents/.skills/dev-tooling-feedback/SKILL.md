@@ -82,13 +82,18 @@ If the user mentions a topic but not a specific file, search the mapping table f
 
 3. After the fix, re-read the modified file to verify correctness.
 
-### Phase 4: Confirm
+### Phase 4: Confirm & Commit
 
-Report to the user:
-1. **What was changed** (file path + section)
-2. **Why** (the root cause)
-3. **Impact** (which projects/skills benefit from this fix)
-4. **Suggest committing** if the fix looks correct.
+1. Re-read the modified file to verify correctness.
+2. Report to the user:
+   - **What was changed** (file path + section)
+   - **Why** (the root cause)
+   - **Impact** (which projects/skills benefit from this fix)
+3. **Commit the change automatically.** Stage all modified files and commit with a descriptive message:
+   ```
+   git add -A && git commit -m "fix: <concise description of what was fixed and why>"
+   ```
+   The commit message should follow the format: `fix: <what> — <why>`
 
 ## Hard Rules
 
@@ -109,6 +114,7 @@ Agent:
   2. 定位 → .agents/.skills/harness-scan/SKILL.md
   3. 读取 → 找到 Phase 2 凭证扫描的文件匹配模式
   4. 修改 → 添加 .env.local 到扫描模式列表
-  5. 报告 → "已在 harness-scan/SKILL.md 的 Phase 2 凭证扫描中添加 .env.local。
+  5. 提交 → git commit "fix: harness-scan 凭证扫描添加 .env.local 文件匹配"
+  6. 报告 → "已在 harness-scan/SKILL.md 的 Phase 2 凭证扫描中添加 .env.local。
             影响范围：所有项目下次运行 /harness-scan 时都会扫描 .env.local。"
 ```

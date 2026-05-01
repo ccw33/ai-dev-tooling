@@ -33,6 +33,8 @@ Recursively find all `.md` files under `dev_tooling_path`, excluding:
 - `.git/`
 - `__pycache__/`
 - `node_modules/`
+- `templates/` (skill internal files, follow skill-creator conventions, not documentation)
+- `references/` (skill internal files, follow skill-creator conventions, not documentation)
 
 For each file, read ONLY the YAML frontmatter (lines between `---` markers).
 Extract `name` and `description` fields.
@@ -128,5 +130,5 @@ If the user described their current task or problem, highlight the 2-3 most rele
 
 1. **Read frontmatter only.** Never load the full file content — just the YAML between `---` markers.
 2. **Respect directory structure.** Present files in their actual directory hierarchy.
-3. **Report quality issues.** If any `.md` file is missing YAML frontmatter, list it at the end as a warning.
+3. **Report quality issues.** If any `.md` file is missing YAML frontmatter, list it at the end as a warning. Exception: files under `templates/` or `references/` subdirectories are internal skill support files and should be silently skipped — no warning needed.
 4. **Don't modify anything.** This is a read-only discovery skill.
