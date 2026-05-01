@@ -1,3 +1,12 @@
+---
+name: hook-config
+description: >
+  Three-layer hook system for doc-code consistency: OpenCode hooks, Git hooks, and scheduled scans.
+  Covers harness-doc-garden installation, projects.yaml registration, cron/launchd setup, and maintenance calendar.
+  Use when: installing doc maintenance infrastructure, configuring hooks, setting up scheduled scans.
+  Triggers: "hook config", "doc garden setup", "三层hook", "文档维护配置".
+---
+
 # Harness 维护：三层 Hook 体系 + 文档 Gardening
 
 > 来源：[omo-openspec-tdd.md](../omo-openspec-tdd.md) §4.5

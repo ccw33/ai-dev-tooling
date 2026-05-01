@@ -1,3 +1,12 @@
+---
+name: workflow-example
+description: >
+  Complete end-to-end workflow example: adding 2FA authentication to an e-commerce system.
+  Demonstrates all 5 phases from OpenSpec propose through OmO apply to archive.
+  Use when: learning the full workflow for the first time, understanding how the 4 tools collaborate.
+  Triggers: "workflow example", "2FA example", "工作流示例", "完整流程".
+---
+
 # 完整工作流示例：给电商系统添加两步验证（2FA）
 
 > 来源：[omo-openspec-tdd.md](../omo-openspec-tdd.md) §五

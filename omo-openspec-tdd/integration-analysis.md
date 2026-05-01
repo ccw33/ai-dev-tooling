@@ -1,3 +1,12 @@
+---
+name: integration-analysis
+description: >
+  Feasibility analysis of integrating Harness Init + OpenSpec + OmO + TDD as a four-layer AI programming system.
+  Covers tool positioning, complementary relationships, boundary analysis, data flow, and agent switching strategy.
+  Use when: technology selection, explaining architecture to team, understanding why these four tools work together.
+  Triggers: "integration", "feasibility", "可行性", "集成分析", "为什么这四个".
+---
+
 # 四工具集成可行性分析
 
 > 读者：技术负责人、架构师、新加入的团队成员

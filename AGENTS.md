@@ -1,3 +1,11 @@
+---
+name: agents-md
+description: >
+  Project-level instruction file for the dev-tooling meta-project.
+  Helps AI agents understand repo structure, skill inventory, and working constraints.
+  Auto-loaded by OpenCode at session start.
+---
+
 # AGENTS.md — dev-tooling
 
 > This repo is a **meta-project**: it stores documentation and reusable skills for AI-assisted development across multiple projects. It has no application code, no build system, no tests.

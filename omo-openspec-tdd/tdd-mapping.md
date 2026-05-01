@@ -1,8 +1,11 @@
-<!--
-  参考文档：从 omo-openspec-tdd.md §六 提取的 TDD Spec→Test 映射规则。
-  供 AI Agent 和人类在编写测试时查阅，无需翻阅主文档。
-  原始来源：omo-openspec-tdd.md (1114 行)
--->
+---
+name: tdd-mapping
+description: >
+  TDD Spec-to-Test mapping rules. Defines how GIVEN/WHEN/THEN scenarios translate to Arrange/Act/Assert test code.
+  Includes mapping table, code examples, and tasks.md gate rules.
+  Use when: writing tests from OpenSpec scenarios, understanding RED/GREEN/REFACTOR mapping.
+  Triggers: "tdd mapping", "spec to test", "given when then", "TDD映射", "测试映射".
+---
 
 # TDD 的 Spec → Test 映射规则
 

@@ -1,3 +1,12 @@
+---
+name: openspec-tdd-setup
+description: >
+  OpenSpec + TDD global configuration guide.
+  Covers TDD Schema installation, patch script setup, and oinit alias configuration.
+  Use when: setting up OpenSpec environment, installing tdd-driven schema, configuring openspec-tdd patch.
+  Triggers: "openspec setup", "tdd schema", "oinit", "tdd配置", "openspec安装".
+---
+
 # OpenSpec + TDD 全局配置指南
 
 > 配置日期：2026-04-30

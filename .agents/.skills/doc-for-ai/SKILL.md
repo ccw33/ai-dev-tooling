@@ -18,11 +18,23 @@ The fix: progressive loading through a layered file structure.
 
 ## Hard Rules
 
-1. **Root file ≤ 200 lines.** No exceptions. If it's growing past 200, content belongs in a child doc.
-2. **Directory = reference hierarchy.** Child docs live in a subdirectory named after the parent file (without extension).
-3. **Code blocks become files.** If a code block is > 10 lines and executable, extract it to a standalone file or skill. The doc only keeps a reference.
-4. **Every internal link must resolve.** Verify all `[text](./path)` links point to existing files before finishing.
-5. **Never duplicate content.** If the same info exists in a skill or child doc, the parent only keeps a one-line reference + link.
+1. **Non-skill `.md` files (knowledge docs) MUST have YAML frontmatter** with `name` and `description`.
+   Skill-internal files follow `skill-creator` conventions (SKILL.md has frontmatter; references/templates/assets do not).
+   ```yaml
+   ---
+   name: my-doc-name
+   description: >
+     One-line summary of what this document covers.
+     Use when: scenarios where this doc should be read.
+     Triggers: keywords that indicate this doc is relevant.
+   ---
+   ```
+   The `description` is the primary discovery mechanism — include what the doc does, when to use it, and trigger keywords.
+2. **Root file ≤ 200 lines.** No exceptions. If it's growing past 200, content belongs in a child doc.
+3. **Directory = reference hierarchy.** Child docs live in a subdirectory named after the parent file (without extension).
+4. **Code blocks become files.** If a code block is > 10 lines and executable, extract it to a standalone file or skill. The doc only keeps a reference.
+5. **Every internal link must resolve.** Verify all `[text](./path)` links point to existing files before finishing.
+6. **Never duplicate content.** If the same info exists in a skill or child doc, the parent only keeps a one-line reference + link.
 
 ## Structure Pattern
 
@@ -134,6 +146,7 @@ New content to add
 
 Before finishing any documentation work, verify ALL of the following:
 
+- [ ] **Every `.md` has YAML frontmatter with `name` + `description`**
 - [ ] Root file ≤ 200 lines
 - [ ] No code block > 10 lines that could be an executable file
 - [ ] Every `[text](path)` link resolves to an existing file
@@ -146,6 +159,7 @@ Before finishing any documentation work, verify ALL of the following:
 
 | Anti-Pattern | Fix |
 |-------------|-----|
+| `.md` file without YAML frontmatter | Add `name` + `description` frontmatter immediately |
 | 500-line root doc with everything | Split: keep concepts + index in root, move details to children |
 | Code blocks that should be scripts | Extract to `.agents/.skills/` or standalone file, keep reference |
 | Flat directory with 10+ docs | Group into subdirectories matching parent file names |

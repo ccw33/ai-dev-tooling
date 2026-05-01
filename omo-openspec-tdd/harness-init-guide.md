@@ -1,3 +1,12 @@
+---
+name: harness-init-guide
+description: >
+  Harness Engineering guide for brownfield project initialization.
+  Four-step method: inventory → layer → gate → maintain.
+  Use when: onboarding existing projects for AI-assisted development, understanding Harness Init in depth.
+  Triggers: "harness init", "存量项目", "项目初始化", "harness guide".
+---
+
 # Harness Engineering — 存量项目初始化
 
 > 适用于任何语言、任何 AI 编码工具。思路通用，脚本绑定 macOS + OpenCode + Oh-My-OpenAgent。

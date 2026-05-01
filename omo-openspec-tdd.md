@@ -1,3 +1,12 @@
+---
+name: omo-openspec-tdd
+description: >
+  OmO + OpenSpec + TDD + Harness Init 四层AI编程体系。
+  Core reference for AI-assisted development: architecture, quick-start, TDD mapping, troubleshooting.
+  Use when: onboarding an existing project for AI, starting new features, understanding the 4-layer system.
+  Triggers: "omo", "openspec", "tdd", "harness", "四层体系", "AI编程体系".
+---
+
 # OmO + OpenSpec + TDD + Harness Init：四层 AI 编程体系
 
 > 最后更新：2026-05-01 | 适用：macOS + OpenCode + Oh-My-OpenAgent
