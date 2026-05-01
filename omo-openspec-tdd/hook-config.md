@@ -143,7 +143,7 @@ Phase 4: 报告
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
 │                                                                  │
 │   pre-commit: validate-refs.sh  →  校验引用存在性，阻断提交          │
-│   pre-push: check-doc-staleness.sh  →  检查过期，警告不阻断        │
+│   pre-push: check-doc-staleness.sh  →  scan→fix→warn（能修则修）     │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │ 第三层：定时扫描（已有，兜底）                                      │
@@ -231,39 +231,35 @@ OpenCode 不在运行时（人工编辑、CI 合并），由 git hooks 保底。
 bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh
 ```
 
-**pre-push：检查文档过期**
+**pre-push：scan → auto-fix → warn（能修则修）**
 
-脚本位置：`scripts/hooks/check-doc-staleness.sh`（需在项目中创建）
+脚本位置：`scripts/check-doc-staleness.sh`
 
 ```bash
 #!/bin/bash
-# 对比代码 commit 时间 vs 文档修改时间，超过阈值 + N 次 commit 则警告
-# pre-push 触发，只警告不阻断
+# scan → fix → warn 三阶段管道（能修则修，修不了的才告警）
+# pre-push 触发，不阻断推送
 set -euo pipefail
 
-DOCS=("AGENTS.md" "CLAUDE.md")
-WATCH_DIRS=("src/" "lib/")
-THRESHOLD_DAYS=30
-MIN_COMMITS=5
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+SCAN_RESULT="$PROJECT_ROOT/scan-result.json"
 
-for doc in "${DOCS[@]}"; do
-  [ -f "$doc" ] || continue
-
-  doc_date=$(git log -1 --format="%ct" -- "$doc" 2>/dev/null || echo 0)
-  code_date=$(git log -1 --format="%ct" -- "${WATCH_DIRS[@]}" 2>/dev/null || echo 0)
-
-  if [ "$code_date" -gt "$doc_date" ]; then
-    days_stale=$(( (code_date - doc_date) / 86400 ))
-    commits_since=$(git log --format="%H" -- "${WATCH_DIRS[@]}" \
-        --since="@${doc_date}" 2>/dev/null | wc -l | tr -d ' ')
-
-    if [ "$days_stale" -gt "$THRESHOLD_DAYS" ] && [ "$commits_since" -gt "$MIN_COMMITS" ]; then
-      echo "⚠️  $doc 可能已过期（$days_stale 天未更新，$commits_since 次代码提交）"
+if command -v python3 &>/dev/null; then
+  python3 "$SKILL_DIR/scripts/scan.py" --project-root "$PROJECT_ROOT" --output "$SCAN_RESULT" 2>/dev/null || true
+  if [ -f "$SCAN_RESULT" ]; then
+    FIXED=$(python3 "$SKILL_DIR/scripts/fix_refs.py" --project-root "$PROJECT_ROOT" --scan-result "$SCAN_RESULT" --apply 2>&1 | grep -c "FIXED" || true)
+    if [ "${FIXED:-0}" -gt 0 ]; then
+      echo "📝 doc-garden: auto-fixed $FIXED reference(s)"
     fi
+    rm -f "$SCAN_RESULT"
   fi
-done
+fi
 
-exit 0  # 只警告，不阻断
+bash "$SKILL_DIR/scripts/validate-refs.sh" 2>/dev/null | grep -E "^(✗|⚠)" || true
+
+exit 0
 ```
 
 **安装 hook**（两种方式任选）：
@@ -300,7 +296,7 @@ git config core.hooksPath .githooks
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
 | **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
 | **每次提交** | AGENTS.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
-| **每次推送** | 文档过期检测 | git pre-push → `check-doc-staleness.sh`（只警告） |
+| **每次推送** | scan → auto-fix → warn | git pre-push → `check-doc-staleness.sh`（能修则修） |
 | 每周 | timely-doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |
 | 每两周 | 规则回顾（棘轮收紧） | 人工：看 timely-doc-garden 报告中的违规趋势 |
 | 每月 | 根文件瘦身（AGENTS.md ≤100 行） | 人工：参考报告中的大小提示 |

@@ -82,6 +82,24 @@ If the user mentions a topic but not a specific file, search the mapping table f
 
 3. After the fix, re-read the modified file to verify correctness.
 
+### Phase 3b: Project-Wide Sync (MANDATORY)
+
+After fixing the source file, search the ENTIRE dev-tooling repo for stale references
+to the modified skill and sync them. A behavior change in one skill often ripples into
+usage guides, hook descriptions, troubleshooting tables, and cross-references.
+
+1. **Identify the skill name** from Phase 1 (e.g., `harness-doc-garden`).
+2. **Search scope** — grep all `.md` files under `dev_tooling_path` for the skill name.
+   Mandatory search locations:
+   - `omo-openspec-tdd.md` (root) — quick-start commands, hook descriptions, troubleshooting, AI Skills table
+   - `omo-openspec-tdd/*.md` (children) — detailed guides that reference the skill
+   - `.agents/.skills/*/SKILL.md` — other skills that cross-reference the modified skill
+3. **Evaluate each match** — does this description still match the fixed behavior?
+   - If YES → skip, no change needed
+   - If NO → update to match the fix, following doc-for-ai rules (root ≤ 200 lines)
+4. **Verify** — re-read each modified file to confirm correctness.
+5. If no stale references found, report "no stale references found in project docs".
+
 ### Phase 4: Confirm & Commit
 
 1. Re-read the modified file to verify correctness.
@@ -107,14 +125,16 @@ If the user mentions a topic but not a specific file, search the mapping table f
 
 ```
 User: /dev-tooling-feedback
-      harness-scan 的 Phase 2 凭证扫描没有覆盖 .env.local 文件
+      harness-doc-garden pre-push 只告警不修复，应该能修则修
 
 Agent:
-  1. 读取 config.yaml → dev_tooling_path = /Users/chenchaowen/Desktop/Project/dev-tooling
-  2. 定位 → .agents/.skills/harness-scan/SKILL.md
-  3. 读取 → 找到 Phase 2 凭证扫描的文件匹配模式
-  4. 修改 → 添加 .env.local 到扫描模式列表
-  5. 提交 → git commit "fix: harness-scan 凭证扫描添加 .env.local 文件匹配"
-  6. 报告 → "已在 harness-scan/SKILL.md 的 Phase 2 凭证扫描中添加 .env.local。
-            影响范围：所有项目下次运行 /harness-scan 时都会扫描 .env.local。"
+  1. 读取 config.yaml → dev_tooling_path = /Users/.../dev-tooling
+  2. 定位 → .agents/.skills/harness-doc-garden/SKILL.md
+  3. 读取 → 找到 pre-push 模板，只有时间戳对比告警
+  4. 修改 → 改为 scan.py → fix_refs.py → validate-refs.sh 三阶段管道
+  5. 同步 → grep "harness-doc-garden" 全项目：
+     - omo-openspec-tdd.md 第125行 "git pre-push（只警告）" → 改为 "auto-fix + warn"
+     - omo-openspec-tdd/hook-config.md 中的 hook 描述 → 同步更新
+  6. 提交 → git commit "fix: harness-doc-garden pre-push 能修则修 — scan+fix+warn 三阶段"
+  7. 报告 → "修改 3 个文件：SKILL.md + omo-openspec-tdd.md + hook-config.md"
 ```

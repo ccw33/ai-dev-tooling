@@ -122,7 +122,7 @@ openspec init . --tools opencode && oinit   # 初始化（新项目）
 |------|---------|------|
 | Agent 编辑文件后 | 实时校验引用 | OpenCode hook |
 | git commit 时 | 引用存在性校验 | git pre-commit |
-| git push 时 | 文档过期检测 | git pre-push（只警告） |
+| git push 时 | scan → auto-fix → warn 修不了的 | git pre-push（能修则修） |
 | 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |
 
 如需手动触发单次扫描：

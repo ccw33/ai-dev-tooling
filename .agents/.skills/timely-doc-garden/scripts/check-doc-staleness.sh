@@ -1,28 +1,29 @@
 #!/bin/bash
 # 对比代码 commit 时间 vs 文档修改时间，超过阈值 + N 次 commit 则警告
+# 增强：先 scan → fix 自动修复，再告警修不了的 (能修则修)
 # pre-push 触发，只警告不阻断
 set -euo pipefail
 
-DOCS=("AGENTS.md" "CLAUDE.md")
-WATCH_DIRS=("src/" "lib/")
-THRESHOLD_DAYS=30
-MIN_COMMITS=5
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SKILL_DIR="$(dirname "$SCRIPT_DIR")"
+PROJECT_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+SCAN_RESULT="$PROJECT_ROOT/scan-result.json"
 
-for doc in "${DOCS[@]}"; do
-  [ -f "$doc" ] || continue
+# Phase 1: Scan for broken/shifted refs
+if command -v python3 &>/dev/null; then
+  python3 "$SKILL_DIR/scripts/scan.py" --project-root "$PROJECT_ROOT" --output "$SCAN_RESULT" 2>/dev/null || true
 
-  doc_date=$(git log -1 --format="%ct" -- "$doc" 2>/dev/null || echo 0)
-  code_date=$(git log -1 --format="%ct" -- "${WATCH_DIRS[@]}" 2>/dev/null || echo 0)
-
-  if [ "$code_date" -gt "$doc_date" ]; then
-    days_stale=$(( (code_date - doc_date) / 86400 ))
-    commits_since=$(git log --format="%H" -- "${WATCH_DIRS[@]}" \
-        --since="@${doc_date}" 2>/dev/null | wc -l | tr -d ' ')
-
-    if [ "$days_stale" -gt "$THRESHOLD_DAYS" ] && [ "$commits_since" -gt "$MIN_COMMITS" ]; then
-      echo "⚠️  $doc 可能已过期（$days_stale 天未更新，$commits_since 次代码提交）"
+  # Phase 2: Auto-fix safe corrections (path renames, line shifts)
+  if [ -f "$SCAN_RESULT" ]; then
+    FIXED=$(python3 "$SKILL_DIR/scripts/fix_refs.py" --project-root "$PROJECT_ROOT" --scan-result "$SCAN_RESULT" --apply 2>&1 | grep -c "FIXED" || true)
+    if [ "${FIXED:-0}" -gt 0 ]; then
+      echo "📝 doc-garden: auto-fixed $FIXED reference(s)"
     fi
+    rm -f "$SCAN_RESULT"
   fi
-done
+fi
+
+# Phase 3: Warn about remaining issues (needs AI or human review)
+bash "$SKILL_DIR/scripts/validate-refs.sh" 2>/dev/null | grep -E "^(✗|⚠)" || true
 
 exit 0  # 只警告，不阻断
