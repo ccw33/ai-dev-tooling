@@ -206,6 +206,7 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | 产出 | 路径 | 来源 |
 |------|------|------|
 | 项目知识 | `AGENTS.md` + `docs/` | Harness Init |
+| 债务清单 | `KNOWN_DEBTS.md` | harness-gate（按优先级分类 + 修复方法） |
 | OpenSpec 制品 | `openspec/` | OpenSpec |
 | 执行计划 | `.sisyphus/plans/` | OmO |
 | 维护报告 | `.sisyphus/doc-garden-report.md` | timely-doc-garden |

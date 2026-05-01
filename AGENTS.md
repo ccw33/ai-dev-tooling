@@ -24,7 +24,7 @@ openspec-tdd-setup.md         ← TDD Schema installation config (standalone top
 | Skill | Purpose |
 |-------|---------|
 | `harness-scan` | Inventory + layer an existing project (Harness Init step 1-2) |
-| `harness-gate` | Set up quality gates with freeze-ratchet (step 3) |
+| `harness-gate` | Set up quality gates + KNOWN_DEBTS.md with freeze-ratchet (step 3) |
 | `harness-doc-garden` | One-time install of doc maintenance hooks (step 4) |
 | `timely-doc-garden` | Recurring doc-code consistency scan + fix |
 | `doc-for-ai` | Progressive documentation architecture rules |

@@ -415,7 +415,64 @@ wc -l AGENTS.md  # Should still be ≤150 lines
 If adding quality gates pushes it over 150 lines, move detailed gate documentation
 to `docs/development-guide.md` and keep only the commands in AGENTS.md.
 
-### Step 5.2: Final Report
+### Step 5.2: Generate KNOWN_DEBTS.md
+
+After gates are installed, create a unified debt tracking file. This is where
+all discovered issues (lint debt, architecture warnings, TODOs, security findings)
+are cataloged with priority, fix instructions, and status.
+
+```markdown
+# Known Debts — <project-name>
+
+> Freeze-ratchet: tracked but not blocking. New code must not add same-category violations.
+
+## Priority
+
+| Level | Meaning | When to fix |
+|-------|---------|-------------|
+| 🔴 HIGH | Security or correctness risk | ASAP |
+| 🟡 MEDIUM | Code quality, maintainability | When convenient |
+| 🟢 LOW | Style, non-functional | When bored |
+
+---
+
+## 🔴 HIGH
+
+### D-001: <issue title>
+- **Location**: <file or area>
+- **Risk**: <what could go wrong>
+- **Fix**: <specific command or step>
+- **Status**: open / fixing / done
+
+---
+
+## 🟡 MEDIUM
+(group by category: lint debt, architecture warnings, missing features)
+
+---
+
+## 🟢 LOW
+
+---
+
+## Quick Fix Commands
+(concrete one-liners for bulk fixes)
+```
+
+**Data sources to populate KNOWN_DEBTS.md**:
+- Lint errors: `ruff check . --quiet 2>&1 | wc -l` / `eslint . --format compact 2>&1 | wc -l`
+- Architecture warnings: `bash scripts/check-architecture.sh 2>&1`
+- TODOs/FIXMEs: `grep -rn "TODO\|FIXME\|HACK" src/ 2>/dev/null`
+- Security findings from harness-scan Phase 2
+- Coverage gaps vs baseline
+
+**Update AGENTS.md NOTES** to reference:
+```markdown
+## NOTES
+- Complete debt list: [KNOWN_DEBTS.md](KNOWN_DEBTS.md) (prioritized + fix instructions)
+```
+
+### Step 5.3: Final Report
 
 ```
 === harness-gate Complete ===
@@ -430,15 +487,16 @@ New Gates Installed:
   ✅ Architecture check — layer import rules
   ✅ TypeScript strict — strictNullChecks enabled
 
+Debt Tracking:
+  ✅ KNOWN_DEBTS.md — N items cataloged (🔴 H / 🟡 M / 🟢 L)
+  ✅ AGENTS.md — NOTES section references KNOWN_DEBTS.md
+
 Strategy: freeze-ratchet
   Baseline: .gate-baselines/ (N existing violations frozen)
   New violations: BLOCKED
-  Existing violations: TRACKED (not blocked)
-
-AGENTS.md updated with quality gates section.
+  Existing violations: TRACKED in KNOWN_DEBTS.md (not blocked)
 
 Next Step: Run /harness-doc-garden to set up ongoing maintenance.
-           Then you're ready for feature development with OpenSpec + OmO + TDD.
 ```
 
 **Mark Phase 5 as completed.**
