@@ -107,10 +107,22 @@ openspec init . --tools opencode && oinit   # 初始化（新项目）
 
 ### 4.4 日常维护
 
+`/harness-doc-garden` 安装完成后，三层 Hook 自动运行，无需手动操作：
+
+| 时机 | 自动触发 | 机制 |
+|------|---------|------|
+| Agent 编辑文件后 | 实时校验引用 | OpenCode hook |
+| git commit 时 | 引用存在性校验 | git pre-commit |
+| git push 时 | 文档过期检测 | git pre-push（只警告） |
+| 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |
+
+如需手动触发单次扫描：
+
 ```bash
-timely-doc-garden                    # 定时扫描（已由 harness-doc-garden 安装）
-# 每周 gardening · 每两周规则回顾 · 每月根文件瘦身
+/timely-doc-garden              # 手动运行扫描+修复（等同于定时任务的一次执行）
 ```
+
+> 📖 三层 Hook 安装配置 → [hook-config.md](./omo-openspec-tdd/hook-config.md)
 
 ### 4.5 扩展命令
 
