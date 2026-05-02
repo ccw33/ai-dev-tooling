@@ -109,7 +109,7 @@ openspec init . --tools opencode && oinit   # 初始化（新项目）
 | 时机 | 自动触发 | 机制 |
 |------|---------|------|
 | Agent 编辑文件后 | 实时校验引用 | OpenCode hook |
-| Agent 回复完毕后 | AI 检查文档一致性（可选） | Plugin session.idle → opencode run |
+| Agent 回复完毕后 | AI 检查文档一致性（git worktree 隔离） | Plugin session.idle → worktree → opencode run |
 | git commit 时 | 引用存在性校验 | git pre-commit |
 | git push 时 | pytest（阻断）+ scan→fix→warn 修不了的 | git pre-push |
 | 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |

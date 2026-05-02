@@ -140,11 +140,12 @@ Phase 4: 报告
 │   experimental.hook.session_completed  →  Session 结束后轻量扫描   │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
-│ 第一层半：session.idle Plugin（可选，Agent 回复完触发 AI 检查）      │
+│ 第一层半：session.idle Plugin（Agent 回复完触发 AI 检查，git worktree 隔离）│
 │                                                                  │
-│   Plugin event → session.idle  →  检测代码改动 → 触发 doc-garden   │
+│   Plugin event → session.idle  →  检测代码改动 → git worktree    │
+│   在 worktree 里跑 timely-doc-garden → apply .md diff 回主树     │
 │   检查范围: README.md, AGENTS.md, docs/  (通用，适用于任何项目)     │
-│   通过 opencode run 启动独立 AI session，不阻塞当前会话            │
+│   只有 .md 变更会被 apply，apply 失败则静默丢弃                    │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
@@ -225,17 +226,19 @@ OmO 内置了 **Claude Code 兼容层**，将 Claude Code 的 hook 映射到 Ope
 
 > **实施优先级**：先启用 `experimental.hook`（配置即用），需要更精细控制时再写 Plugin。
 
-#### Layer 1.5: session.idle Plugin（可选）
+#### Layer 1.5: session.idle Plugin
 
-Layer 1 的 `session_completed` 只能跑 shell，无法启动 AI agent。Plugin `event` hook 订阅 `session.idle`（agent 回复完即触发），通过 `opencode run` 启动独立的 AI 文档检查 session。
+Layer 1 的 `session_completed` 只能跑 shell，无法启动 AI agent。Plugin `event` hook 订阅 `session.idle`（agent 回复完即触发），在 **git worktree** 隔离环境中运行 `opencode run` 启动 AI 文档检查。
 
 **安装**：在项目 `.opencode/plugins/` 下创建 plugin（详见 `harness-doc-garden` SKILL.md Step 2.5）。
 
-| 优势 | 限制 |
+| 优势 | 说明 |
 |------|------|
-| AI 级语义检查（不仅行号/路径，还检查描述是否过时） | 每次 agent 回复完都触发，需要 debounce |
-| 自动修复文档，无需人工 | `opencode run` 是独立进程，不反馈到当前 session |
-| 通用，适用于任何有 AGENTS.md 的项目 | 需要 `opencode` CLI + Plugin 支持 |
+| AI 级语义检查 | 不仅行号/路径，还检查描述是否过时 |
+| 自动修复文档 | 无需人工 |
+| 通用 | 适用于任何有 AGENTS.md 的项目 |
+| git worktree 隔离 | 不干扰主工作树，只有 .md diff 会被 apply |
+| apply 失败静默丢弃 | 不阻塞当前 session |
 
 ### 第二层：Git Hook（离线保底）
 
@@ -314,7 +317,7 @@ git config core.hooksPath .githooks
 | 频率 | 动作 | 执行方式 |
 |------|------|---------|
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
-| **Agent 回复完** | 代码改动 → AI 检查文档一致性（可选） | OpenCode Plugin `session.idle` → `opencode run` |
+| **Agent 回复完** | 代码改动 → AI 检查文档一致性（git worktree 隔离） | OpenCode Plugin `session.idle` → worktree → `opencode run` |
 | **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
 | **每次提交** | AGENTS.md + README.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
 | **每次推送** | pytest 跑测试（阻断）+ scan→fix→warn | git pre-push → pytest + `check-doc-staleness.sh` |
