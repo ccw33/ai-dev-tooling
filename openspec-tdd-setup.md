@@ -72,10 +72,11 @@ tdd-driven（TDD 版）：
 
 **位置**：`~/.local/bin/openspec-tdd`
 
-在 `openspec init` 之后运行，只做一件事：覆写 `config.yaml` 切换为 TDD schema。
+在 `openspec init` 之后运行，切换为 TDD schema。
 
-1. 覆写 `openspec/config.yaml` 为 TDD 版本
-2. 运行 `openspec update`（重新生成 AI skills）
+1. 若 `openspec/config.yaml` 不存在（non-interactive 模式会跳过），自动创建
+2. 覆写 `openspec/config.yaml` 为 TDD 版本
+3. 运行 `openspec update`（重新生成 AI skills）
 
 **别名**：`oinit`（已写入 `~/.zshrc`）
 
