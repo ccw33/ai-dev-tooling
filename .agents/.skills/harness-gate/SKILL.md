@@ -275,46 +275,39 @@ npx eslint . --format json > .gate-baselines/eslint-baseline.json 2>/dev/null ||
 
 ```bash
 # Option A: Husky (if already in project)
-npx husky add .husky/pre-commit "npx eslint . --max-warnings 0 && npx tsc --noEmit"
+npx husky add .husky/pre-commit "npx eslint . --max-warnings 0 && npx tsc --noEmit && npx vitest run"
 
 # Option B: Simple .githooks
 mkdir -p .githooks
 cat > .githooks/pre-commit << 'EOF'
 #!/bin/bash
 set -euo pipefail
-# Harness Gate: Pre-commit checks
+# Harness Gate: Pre-commit checks (lint + type + tests + refs)
 echo "Running quality gates..."
 # Adjust for project's language
 npx eslint . --max-warnings 0 2>/dev/null || true
 npx tsc --noEmit 2>/dev/null || true
+
+# Full regression tests (BLOCKING)
+npx vitest run 2>&1 | tail -5
+TEST_RC=${PIPESTATUS[0]}
+if [ $TEST_RC -ne 0 ]; then
+  echo "❌ Tests failed. Fix before committing."
+  exit 1
+fi
+
+# Doc reference validation (non-blocking)
+bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh 2>/dev/null || true
 echo "✅ Pre-commit checks passed"
 EOF
 chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
 
-#### Pre-push Hooks: Tests (blocking)
+#### Pre-push Hooks: Doc-garden scan (non-blocking)
 
-```bash
-# Pre-push: run tests — BLOCKING (blocks push on failure)
-cat >> .githooks/pre-push << 'EOF'
-#!/bin/bash
-set -euo pipefail
-
-echo "🔍 Running tests..."
-uv run pytest --tb=short -q -x 2>&1 | tail -5
-TEST_RC=${PIPESTATUS[0]}
-if [ $TEST_RC -ne 0 ]; then
-  echo "❌ Tests failed. Fix before pushing."
-  exit 1
-fi
-echo "✅ Tests passed"
-EOF
-chmod +x .githooks/pre-push
-
-# For Node projects, replace pytest with:
-# npx vitest run 2>&1 | tail -5
-```
+> **Note**: Full regression tests run in pre-commit (catches broken commits earlier).
+> Pre-push only runs doc-garden scan+fix as a lightweight safety net.
 
 #### Coverage Threshold (if confirmed)
 

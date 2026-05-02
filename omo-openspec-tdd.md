@@ -110,8 +110,8 @@ openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致
 |------|---------|------|
 | Agent 编辑文件后 | 实时校验引用 | OpenCode hook |
 | Agent 回复完毕后 | AI 检查文档一致性（git worktree 隔离） | Plugin session.idle → worktree → opencode run |
-| git commit 时 | 引用存在性校验 | git pre-commit |
-| git push 时 | pytest（阻断）+ scan→fix→warn 修不了的 | git pre-push |
+| git commit 时 | lint + format + architecture + pytest（阻断）+ 引用校验 | git pre-commit |
+| git push 时 | scan→fix→warn 修不了的 | git pre-push |
 | 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |
 
 如需手动触发单次扫描：

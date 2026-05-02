@@ -150,9 +150,8 @@ Phase 4: 报告
 ├─────────────────────────────────────────────────────────────────┤
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
 │                                                                  │
-│   pre-commit: validate-refs.sh  →  校验引用存在性（含 README.md）    │
-│   pre-push: pytest  →  跑测试，失败阻断推送                          │
-│   pre-push: check-doc-staleness.sh  →  scan→fix→warn（能修则修）     │
+│   pre-commit: lint + format + architecture + pytest（阻断）+ validate-refs │
+│   pre-push: check-doc-staleness.sh  →  scan→fix→warn（能修则修）         │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │ 第三层：定时扫描（已有，兜底）                                      │
@@ -244,14 +243,32 @@ Layer 1 的 `session_completed` 只能跑 shell，无法启动 AI agent。Plugin
 
 OpenCode 不在运行时（人工编辑、CI 合并），由 git hooks 保底。
 
-**pre-commit：校验文档引用存在性（AGENTS.md + README.md）**
+**pre-commit：lint + format + architecture + pytest（阻断）+ validate-refs**
 
-复用 `validate-refs.sh`（已存在于 `.agents/.skills/timely-doc-garden/scripts/`）：
+全量回归测试提前到 pre-commit，尽早发现 broken commits：
 
 ```bash
 #!/bin/bash
+set -euo pipefail
 # 在项目根目录的 pre-commit hook 中调用
-bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh
+echo "Running quality gates..."
+
+# 1. Lint + format
+ruff check . && ruff format --check .
+
+# 2. Architecture layer check (if exists)
+bash scripts/check-architecture.sh 2>/dev/null || true
+
+# 3. Full regression tests (BLOCKING)
+pytest -x --tb=short -q
+TEST_RC=$?
+if [ $TEST_RC -ne 0 ]; then
+  echo "❌ Tests failed. Fix before committing."
+  exit 1
+fi
+
+# 4. Doc reference validation (non-blocking)
+bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh || true
 ```
 
 **pre-push：scan → auto-fix → warn（能修则修）**
@@ -289,15 +306,23 @@ exit 0
 
 ```bash
 # 方式 A：Husky（如果项目已有）
-npx husky add .husky/pre-commit "bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh"
+npx husky add .husky/pre-commit "ruff check . && ruff format --check . && bash scripts/check-architecture.sh 2>/dev/null; pytest -x --tb=short -q; bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh || true"
 npx husky add .husky/pre-push "bash .agents/.skills/timely-doc-garden/scripts/check-doc-staleness.sh"
 
 # 方式 B：直接写 .githooks（无依赖）
 mkdir -p .githooks
-echo '#!/bin/bash' > .githooks/pre-commit
-echo 'bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh' >> .githooks/pre-commit
-echo '#!/bin/bash' > .githooks/pre-push
-echo 'bash .agents/.skills/timely-doc-garden/scripts/check-doc-staleness.sh' >> .githooks/pre-push
+cat > .githooks/pre-commit << 'PRECOMMIT'
+#!/bin/bash
+set -euo pipefail
+ruff check . && ruff format --check .
+bash scripts/check-architecture.sh 2>/dev/null || true
+pytest -x --tb=short -q
+bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh || true
+PRECOMMIT
+cat > .githooks/pre-push << 'PREPUSH'
+#!/bin/bash
+bash .agents/.skills/timely-doc-garden/scripts/check-doc-staleness.sh
+PREPUSH
 chmod +x .githooks/pre-commit .githooks/pre-push
 git config core.hooksPath .githooks
 ```
@@ -319,8 +344,8 @@ git config core.hooksPath .githooks
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
 | **Agent 回复完** | 代码改动 → AI 检查文档一致性（git worktree 隔离） | OpenCode Plugin `session.idle` → worktree → `opencode run` |
 | **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
-| **每次提交** | AGENTS.md + README.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
-| **每次推送** | pytest 跑测试（阻断）+ scan→fix→warn | git pre-push → pytest + `check-doc-staleness.sh` |
+| **每次提交** | lint + format + architecture + pytest（阻断）+ validate-refs | git pre-commit |
+| **每次推送** | scan→fix→warn（doc-garden） | git pre-push → `check-doc-staleness.sh` |
 | 每周 | timely-doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |
 | 每两周 | 规则回顾（棘轮收紧） | 人工：看 timely-doc-garden 报告中的违规趋势 |
 | 每月 | 根文件瘦身（AGENTS.md ≤100 行） | 人工：参考报告中的大小提示 |

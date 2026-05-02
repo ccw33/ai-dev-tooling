@@ -48,7 +48,7 @@ for doc_file in $DOC_FILES; do
 
   while IFS= read -r ref; do
     file_part=$(echo "$ref" | rev | cut -d: -f2- | rev)
-    line_part=$(echo "$ref" | rev | cut -d: -1 | rev)
+    line_part=$(echo "$ref" | sed 's/.*:\([0-9]*\)$/\1/')
 
     resolved_file="$doc_dir/$file_part"
 
