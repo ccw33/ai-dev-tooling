@@ -137,7 +137,7 @@ Phase 4: 报告
 │ 第一层：OpenCode Hook（实时，Agent 编辑时触发）                     │
 │                                                                  │
 │   experimental.hook.file_edited  →  文件编辑后校验引用（含 README.md） │
-│   experimental.hook.session_completed  →  Session 结束后轻量扫描   │
+│   experimental.hook.session_completed  →  Session 结束后：auto-fix + 文档影响检测 │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
@@ -177,13 +177,12 @@ OpenCode 的 `experimental.hook` 配置（写在 `opencode.json` 中）可以在
           }
         ]
       },
-      // Session 结束后触发 — 轻量 timely-doc-garden 扫描
+      // Session 结束后触发 — auto-fix + 文档影响检测（提示 Agent 更新 README/docs）
       "session_completed": [
         {
           "command": [
             "bash",
-            "/Users/chenchaowen/Desktop/Project/dev-tooling/.agents/.skills/timely-doc-garden/scripts/run-scheduled.sh",
-            "--project", "."
+            "/Users/chenchaowen/Desktop/Project/dev-tooling/.agents/.skills/timely-doc-garden/scripts/session-doc-check.sh"
           ],
           "environment": { "TRIGGER": "session_completed" }
         }
@@ -196,7 +195,7 @@ OpenCode 的 `experimental.hook` 配置（写在 `opencode.json` 中）可以在
 | Hook 点 | 触发时机 | 用途 |
 |---------|---------|------|
 | `file_edited` | Agent 每次 Write/Edit/MultiEdit 后 | 校验被改文件的文档引用是否断裂 |
-| `session_completed` | 整个对话结束时 | 全量 timely-doc-garden 扫描（只检查本次变更涉及的文档） |
+| `session_completed` | 整个对话结束时 | auto-fix 引用偏移 + 检测代码改动是否影响 README/AGENTS.md/docs |
 
 **进阶：Plugin 级 Hook**（需要写插件代码）：
 
@@ -295,7 +294,7 @@ git config core.hooksPath .githooks
 | 频率 | 动作 | 执行方式 |
 |------|------|---------|
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
-| **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
+| **每次 Session 结束** | auto-fix + 文档影响检测（代码改了但文档没改→警告） | OpenCode `experimental.hook.session_completed` |
 | **每次提交** | AGENTS.md + README.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
 | **每次推送** | pytest 跑测试（阻断）+ scan→fix→warn | git pre-push → pytest + `check-doc-staleness.sh` |
 | 每周 | timely-doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |

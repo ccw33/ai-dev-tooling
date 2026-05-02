@@ -68,8 +68,7 @@ Add `experimental.hook` configuration:
         {
           "command": [
             "bash",
-            "<SKILL_DIR>/scripts/run-scheduled.sh",
-            "--project", "."
+            "<SKILL_DIR>/scripts/session-doc-check.sh"
           ],
           "environment": { "TRIGGER": "session_completed" }
         }
