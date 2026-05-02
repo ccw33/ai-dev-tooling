@@ -520,6 +520,18 @@ grep -oE '[a-zA-Z0-9_./-]+\.[a-zA-Z]+:[0-9]+' AGENTS.md | while read ref; do
 done
 ```
 
+**README.md freshness check**: After generating AGENTS.md, compare with README.md:
+
+1. Does README.md mention CLI commands that have changed? (e.g., new subcommands, renamed flags)
+2. Does README.md reference architecture/structure that has been updated in AGENTS.md?
+3. Are there stale URLs, deprecated commands, or removed features still listed?
+
+If README.md is stale, add a note to the final report:
+```
+⚠️  README.md may need updates: {list of stale items}
+    Run /readme-blueprint-generator to regenerate, or update manually.
+```
+
 ### Step 4.4: Final Report
 
 ```

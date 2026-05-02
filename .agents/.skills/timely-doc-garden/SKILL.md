@@ -1,7 +1,7 @@
 ---
 name: timely-doc-garden
 description: >
-  Scan project documentation (AGENTS.md, docs/) for stale references, outdated facts,
+  Scan project documentation (AGENTS.md, README.md, docs/) for stale references, outdated facts,
   and drift from actual code. Auto-fixes safe corrections (line numbers, paths) and
   semantically updates outdated descriptions. Only reports items requiring human judgment.
   Use when: maintaining documentation freshness, running scheduled doc-code consistency
@@ -44,7 +44,7 @@ If `total_count == 0`, the project has no file references in docs — skip to Ph
 
 ### Phase 2: Deep Semantic Scan + Immediate Fix
 
-For each doc file (AGENTS.md, then docs/**/*.md), read and check every claim against actual code.
+For each doc file (AGENTS.md, README.md, then docs/**/*.md), read and check every claim against actual code.
 
 #### 2.1 Architecture vs Directory Structure
 - Read any directory tree or module listing in docs

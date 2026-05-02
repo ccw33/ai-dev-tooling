@@ -136,13 +136,13 @@ Phase 4: 报告
 ┌─────────────────────────────────────────────────────────────────┐
 │ 第一层：OpenCode Hook（实时，Agent 编辑时触发）                     │
 │                                                                  │
-│   experimental.hook.file_edited  →  文件编辑后校验引用              │
+│   experimental.hook.file_edited  →  文件编辑后校验引用（含 README.md） │
 │   experimental.hook.session_completed  →  Session 结束后轻量扫描   │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
 │                                                                  │
-│   pre-commit: validate-refs.sh  →  校验引用存在性，阻断提交          │
+│   pre-commit: validate-refs.sh  →  校验引用存在性（含 README.md）    │
 │   pre-push: pytest  →  跑测试，失败阻断推送                          │
 │   pre-push: check-doc-staleness.sh  →  scan→fix→warn（能修则修）     │
 │                                                                  │
@@ -222,7 +222,7 @@ OmO 内置了 **Claude Code 兼容层**，将 Claude Code 的 hook 映射到 Ope
 
 OpenCode 不在运行时（人工编辑、CI 合并），由 git hooks 保底。
 
-**pre-commit：校验 AGENTS.md 引用存在性**
+**pre-commit：校验文档引用存在性（AGENTS.md + README.md）**
 
 复用 `validate-refs.sh`（已存在于 `.agents/.skills/timely-doc-garden/scripts/`）：
 
@@ -296,7 +296,7 @@ git config core.hooksPath .githooks
 |------|------|---------|
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
 | **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
-| **每次提交** | AGENTS.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
+| **每次提交** | AGENTS.md + README.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
 | **每次推送** | pytest 跑测试（阻断）+ scan→fix→warn | git pre-push → pytest + `check-doc-staleness.sh` |
 | 每周 | timely-doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |
 | 每两周 | 规则回顾（棘轮收紧） | 人工：看 timely-doc-garden 报告中的违规趋势 |

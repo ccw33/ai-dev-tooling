@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Doc Garden Phase 1: Deterministic reference scanner.
 
-Extracts file:line references from AGENTS.md and docs/,
+Extracts file:line references from AGENTS.md, README.md, and docs/,
 validates targets exist and line content matches.
 
 Usage:
@@ -146,6 +146,11 @@ def scan_project(project_root: Path) -> dict:
     agents_md = project_root / "AGENTS.md"
     if agents_md.exists():
         md_files.append(agents_md)
+
+    # README.md (human-facing docs may contain file:line references too)
+    readme_md = project_root / "README.md"
+    if readme_md.exists():
+        md_files.append(readme_md)
 
     # Subdirectory AGENTS.md files
     for agents in project_root.rglob("AGENTS.md"):
