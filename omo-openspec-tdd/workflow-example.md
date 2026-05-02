@@ -35,7 +35,7 @@ oinit                              # 如果还没切换过 tdd-driven
 ### Step 1：探索
 
 ```
-/opsx:explore
+/opsx-explore
 ```
 
 Agent 调查现有认证系统、数据库结构、TOTP 库选型。此阶段不产出文件。
@@ -43,7 +43,7 @@ Agent 调查现有认证系统、数据库结构、TOTP 库选型。此阶段不
 ### Step 2：提案
 
 ```
-/opsx:propose add-2fa
+/opsx-propose add-2fa
 ```
 
 DAG 引擎按依赖顺序生成制品：
@@ -167,7 +167,7 @@ expect(loginRes.body.requires2FA).toBe(true);
 切回 Sisyphus Agent，触发 DAG apply 阶段：
 
 ```
-/opsx:apply
+/opsx-apply
 ```
 
 OmO 读取 `openspec/changes/add-2fa/tasks.md`，Atlas 做依赖分析和并行分组：
@@ -231,8 +231,8 @@ test             → 测试通过
 ```
 
 **OpenSpec 规范验证**（全部完成后）：
-```
-/opsx:verify
+```bash
+openspec validate add-2fa
 ```
 
 三维验证：
@@ -245,7 +245,7 @@ test             → 测试通过
 ## 5.5 Phase 5：归档 & 复合学习
 
 ```
-/opsx:archive
+/opsx-archive
 ```
 
 Delta Spec 合并到主 Spec：

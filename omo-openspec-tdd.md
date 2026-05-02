@@ -86,8 +86,8 @@ npm install -g @fission-ai/openspec@latest && openspec --version  # OpenSpec ≥
 
 ```bash
 openspec init . --tools opencode && oinit   # 初始化（新项目）
-/opsx:explore                                # 探索现有代码
-/opsx:propose <feature-name>                 # 生成 proposal/specs/design/tests/tasks
+/opsx-explore                                # 探索现有代码
+/opsx-propose <feature-name>                 # 生成 proposal/specs/design/tests/tasks
 ```
 
 规划阶段**只读代码、只写 spec 文件**，不写实现代码。
@@ -97,9 +97,9 @@ openspec init . --tools opencode && oinit   # 初始化（新项目）
 ### 4.3 开始实现
 
 ```bash
-/opsx:apply     # Atlas 读 tasks.md，分派 Agent，TDD 流程：RED → GREEN → REFACTOR
-/opsx:verify    # 规范验证（完整性 + 正确性 + 一致性）
-/opsx:archive   # Delta Spec 合并到主 Spec（复合学习）
+/opsx-apply     # Atlas 读 tasks.md，分派 Agent，TDD 流程：RED → GREEN → REFACTOR
+openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致性）
+/opsx-archive   # Delta Spec 合并到主 Spec（复合学习）
 ```
 
 ### 4.4 日常维护
@@ -122,15 +122,14 @@ openspec init . --tools opencode && oinit   # 初始化（新项目）
 
 > 📖 三层 Hook 安装配置 → [hook-config.md](./omo-openspec-tdd/hook-config.md)
 
-### 4.5 扩展命令
+### 4.5 扩展命令（CLI 直接调用）
 
-```
-/opsx:new <name>       # 建脚手架，不自动生成制品
-/opsx:continue         # 生成 DAG 中下一个制品（逐个推进）
-/opsx:ff               # 快进：一次生成所有规划制品
-/opsx:sync             # 单独合并 delta specs
-/opsx:bulk-archive     # 批量归档
-/opsx:onboard          # 引导教程
+```bash
+openspec new change <name>    # 建脚手架，不自动生成制品
+openspec validate <name>      # 验证规范完整性 + 正确性 + 一致性
+openspec archive <name>       # 归档完成的 change，Delta Specs 合入主 Spec
+openspec show <name>          # 查看 change 详情
+openspec list                 # 列出所有活跃 changes
 ```
 
 ---

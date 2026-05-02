@@ -130,7 +130,7 @@ openspec-tdd
 oinit
 
 # 然后在 AI 编程助手中使用
-/opsx:propose add-dark-mode
+/opsx-propose add-dark-mode
 ```
 
 ### 3.2 已有项目
@@ -150,7 +150,7 @@ openspec update
 ### 3.3 完整 TDD 工作流
 
 ```
-/opsx:propose add-feature
+/opsx-propose add-feature
        │
        ▼
   proposal.md    ──── 为什么做、做什么
@@ -168,14 +168,14 @@ openspec update
   tasks.md        ──── Verify RED → 实现 → REFACTOR
        │
        ▼
-/opsx:apply       ──── GREEN: 最少代码通过测试
-                      REFACTOR: 清理，保持 GREEN
+/opsx-apply       ──── GREEN: 最少代码通过测试
+                       REFACTOR: 清理，保持 GREEN
        │
        ▼
-/opsx:verify      ──── 检查 Spec-Test-Code 一致性
+openspec validate ──── 检查 Spec-Test-Code 一致性
        │
        ▼
-/opsx:archive     ──── 归档，Delta Specs 合入主 Spec
+/opsx-archive     ──── 归档，Delta Specs 合入主 Spec
 ```
 
 ### 3.4 Spec Scenario → Test 映射示例
