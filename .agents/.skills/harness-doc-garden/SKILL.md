@@ -83,6 +83,74 @@ Replace `<SKILL_DIR>` with the absolute path to `.agents/.skills/timely-doc-gard
 Merge into existing config — do NOT overwrite other settings.
 If `experimental.hook` already exists, skip this step and report.
 
+### Step 2.5: session.idle Plugin Hook (Optional, Layer 1.5)
+
+`experimental.hook.session_completed`（Step 2）只能运行 shell 命令，无法启动 AI agent 做深度语义检查。
+OpenCode Plugin 系统的 `event` hook 可以订阅 `session.idle`（agent 回复完毕后），通过 `opencode run` 启动 AI 文档检查。
+
+**原理**：每次 agent 回复完 → plugin 检测 `session.diff` 发现代码改动 → 自动运行 `opencode run` 触发 `timely-doc-garden` 扫描 README.md、AGENTS.md、docs/。
+
+**安装方式**（通用，适用于任何项目）：
+
+1. 创建 `.opencode/plugins/session-idle-doc-sync.ts`：
+
+```typescript
+import type { Plugin } from "@opencode-ai/plugin"
+
+const DEBOUNCE_MS = 120_000 // 2 min debounce between runs
+let lastRun = 0
+
+export default (async ({ $, directory }) => {
+  return {
+    event: async ({ event }) => {
+      if (event.type !== "session.idle") return
+      const now = Date.now()
+      if (now - lastRun < DEBOUNCE_MS) return
+      lastRun = now
+
+      // Check if this session modified code files
+      try {
+        const diff = await $`git diff --name-only HEAD~1 2>/dev/null || true`
+        const files = diff.toString().trim()
+        if (!files) return
+
+        const hasCodeChanges = files.split("\n").some(f =>
+          /\.(py|ts|js|go|rs|java|rb|cs|cpp|c|h|swift|kt)$/i.test(f)
+        )
+        if (!hasCodeChanges) return
+
+        // Run doc-garden check in background
+        $`opencode run --dangerously-skip-permissions \
+          "Run the timely-doc-garden skill to check if README.md, AGENTS.md, or docs/ need updates after code changes." \
+          &`.catch(() => {})
+      } catch {
+        // Silent fail — never block agent
+      }
+    },
+  }
+}) as Plugin
+```
+
+2. 确保 `.opencode/plugins/` 在 plugin 配置中被加载（OpenCode 自动发现 `plugins/` 目录下的 `.ts` 文件）。
+
+3. 如需跳过某些 session，在 `opencode.json` 中添加：
+```jsonc
+{
+  "plugins": {
+    "session-idle-doc-sync": {
+      "enabled": true,
+      "excludeAgents": ["plan", "explore"]  // 不对规划/探索 agent 触发
+    }
+  }
+}
+```
+
+**注意事项**：
+- `session.idle` 在**每次 agent 回复完**都触发（不是 session 结束），所以必须有 debounce
+- `opencode run` 启动的是**独立进程**，不影响当前 session
+- 这是可选的增强层，不影响 Step 2（session_completed）的基础功能
+- 需要项目有 `opencode` CLI 可用
+
 ### Step 3: Git Hooks (Layer 2)
 
 Create `.githooks/` directory in the project root and set up hooks:
@@ -209,6 +277,7 @@ After all steps, print:
 
 Installed:
   - Layer 1: OpenCode hooks (file_edited + session_completed)
+  - Layer 1.5 (optional): session.idle Plugin (auto doc-sync on agent idle)
   - Layer 2: Git hooks (pre-commit + pre-push)
   - Layer 3: launchd weekly scan (Monday 09:00)
 
