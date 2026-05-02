@@ -293,6 +293,29 @@ chmod +x .githooks/pre-commit
 git config core.hooksPath .githooks
 ```
 
+#### Pre-push Hooks: Tests (blocking)
+
+```bash
+# Pre-push: run tests — BLOCKING (blocks push on failure)
+cat >> .githooks/pre-push << 'EOF'
+#!/bin/bash
+set -euo pipefail
+
+echo "🔍 Running tests..."
+uv run pytest --tb=short -q -x 2>&1 | tail -5
+TEST_RC=${PIPESTATUS[0]}
+if [ $TEST_RC -ne 0 ]; then
+  echo "❌ Tests failed. Fix before pushing."
+  exit 1
+fi
+echo "✅ Tests passed"
+EOF
+chmod +x .githooks/pre-push
+
+# For Node projects, replace pytest with:
+# npx vitest run 2>&1 | tail -5
+```
+
 #### Coverage Threshold (if confirmed)
 
 ```bash

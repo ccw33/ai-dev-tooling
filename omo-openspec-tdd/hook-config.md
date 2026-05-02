@@ -143,6 +143,7 @@ Phase 4: 报告
 │ 第二层：Git Hook（离线保底，人工编辑时触发）                         │
 │                                                                  │
 │   pre-commit: validate-refs.sh  →  校验引用存在性，阻断提交          │
+│   pre-push: pytest  →  跑测试，失败阻断推送                          │
 │   pre-push: check-doc-staleness.sh  →  scan→fix→warn（能修则修）     │
 │                                                                  │
 ├─────────────────────────────────────────────────────────────────┤
@@ -296,7 +297,7 @@ git config core.hooksPath .githooks
 | **实时** | 文件编辑后校验引用 | OpenCode `experimental.hook.file_edited` |
 | **每次 Session 结束** | 轻量 timely-doc-garden 扫描 | OpenCode `experimental.hook.session_completed` |
 | **每次提交** | AGENTS.md 引用存在性校验 | git pre-commit → `validate-refs.sh` |
-| **每次推送** | scan → auto-fix → warn | git pre-push → `check-doc-staleness.sh`（能修则修） |
+| **每次推送** | pytest 跑测试（阻断）+ scan→fix→warn | git pre-push → pytest + `check-doc-staleness.sh` |
 | 每周 | timely-doc-garden 全量扫描 + 修复 | cron/launchd → `run-scheduled.sh` |
 | 每两周 | 规则回顾（棘轮收紧） | 人工：看 timely-doc-garden 报告中的违规趋势 |
 | 每月 | 根文件瘦身（AGENTS.md ≤100 行） | 人工：参考报告中的大小提示 |
