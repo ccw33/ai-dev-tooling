@@ -105,7 +105,40 @@ timely-doc-garden (定时)    ←→    OpenSpec archive (功能完成时)
 | **验证**（verify） | Sisyphus | 读权限为主 | 偏审查性质 |
 | **归档**（archive） | Sisyphus | 需要移动文件 | 涉及文件系统操作 |
 
-## 6. 结论
+## 6. Skill ≠ 执行策略（关键设计决策）
+
+### 问题
+
+`opsx-apply` 等 skill 的指令是"逐个 task 执行"——Sisyphus 加载 skill 后会严格遵守这个顺序，放弃了自己的多 agent 分派能力。结果：一个拥有 8 种 subagent 的编排器变成了单线程打字员。
+
+### 根因
+
+Skill 被当作**执行策略覆盖**（execution strategy override），而不是**领域知识注入**（domain knowledge injection）。Sisyphus 把 skill 里的顺序步骤当成必须遵守的执行计划。
+
+### 解决方案
+
+通过全局 user-level rule `~/.sisyphus/rules/delegation-guardrails.md` 注入两条规则（OMO 的 Rules Injector 机制，`alwaysApply: true`，每个 session 自动加载，无需手动 `load_skills`）：
+
+1. **Skill Hierarchy Rule**: Skill 提供领域知识（文件路径、格式、命令），不覆盖编排行为（谁来做、做几个、什么顺序）
+2. **Post-Skill-Load Orchestration Gate**: 加载任何多步骤 skill 后，必须重新做依赖分析 + 分派判断
+
+优先级：**Sisyphus 编排规则** > **Skill 领域知识** > **Skill 执行建议（仅默认值）**
+
+```
+Skill says: "For each pending task: make code changes, continue to next"
+  ↓
+Sisyphus 判断: 5 个独立 tasks → 并行分派 5 个 deep agent
+  ↓
+每个 agent 收到: Skill 的领域知识（文件路径、格式）+ 具体任务描述
+```
+
+### 为什么不修改 skill 本身
+
+- Skill 是通用的，可能在单 agent 场景下使用
+- 分派是编排器的核心能力，不应该被任何 skill 覆盖
+- **为什么用 rule 而不是 skill**: Skill 需要主动 `load_skills=["xxx"]` 才生效，不会自动注入。而 OMO 的 Rules Injector (`~/.sisyphus/rules/`) 带 `alwaysApply: true` 会自动注入每个 session，零配置生效。
+
+## 7. 结论
 
 四个工具、四个问题、四层架构。每个工具有明确的边界，数据流自上而下（需求 → 测试 → 代码 → 验证），知识积累自下而上（archive → 主 Spec → 未来 proposal 受益）。
 

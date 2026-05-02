@@ -219,7 +219,7 @@ Atlas 读取 tasks.md
 1. **模型路由**：数据层 → `deep`（GPT-5.4），前端 → `visual-engineering`（Gemini），REFACTOR → `quick`（Mini）
 2. **自动验证**：每个任务完成后自动 `lsp_diagnostics` + `build` + `test`
 3. **失败恢复**：3 次失败 → revert → 咨询 Oracle
-4. **并行执行**：识别无依赖的任务并行分派
+4. **并行执行**：识别无依赖的任务并行分派（需要 `~/.sisyphus/rules/delegation-guardrails.md`，否则会退化为串行）
 
 ## 5.4 Phase 4：双重验证
 
