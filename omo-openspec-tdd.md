@@ -88,7 +88,8 @@ mkdir -p ~/.sisyphus/rules && cp rules/delegation-guardrails.md ~/.sisyphus/rule
 ### 4.2 启动新功能
 
 ```bash
-openspec init . --tools opencode && oinit   # 初始化（新项目）
+openspec init . --tools opencode && oinit   # 初始化
+/opsx-baseline-specs                         # 存量项目：根据 AGENTS.md 生成 baseline specs（一次性，新项目跳过）
 /opsx-explore                                # 探索现有代码
 /opsx-propose <feature-name>                 # 生成 proposal/specs/design/tests/tasks
 ```
@@ -177,6 +178,7 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | Skill | 路径 | 用途 |
 |-------|------|------|
 | harness-scan | `.agents/.skills/harness-scan/SKILL.md` | 盘点 + 分层 |
+| opsx-baseline-specs | `.agents/.skills/opsx-baseline-specs/SKILL.md` | 存量项目 baseline spec 生成 |
 | harness-gate | `.agents/.skills/harness-gate/SKILL.md` | 设卡 |
 | harness-doc-garden | `.agents/.skills/harness-doc-garden/SKILL.md` | 安装维护基础设施 |
 | timely-doc-garden | `.agents/.skills/timely-doc-garden/SKILL.md` | 文档一致性扫描+修复 |
@@ -186,6 +188,7 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | 产出 | 路径 | 来源 |
 |------|------|------|
 | 项目知识 | `AGENTS.md` + `docs/` | Harness Init |
+| Baseline Specs | `openspec/specs/<capability>/spec.md` | opsx-baseline-specs（存量项目一次性） |
 | 债务清单 | `KNOWN_DEBTS.md` | harness-gate（按优先级分类 + 修复方法） |
 | OpenSpec 制品 | `openspec/` | OpenSpec |
 | 执行计划 | `.sisyphus/plans/` | OmO |
