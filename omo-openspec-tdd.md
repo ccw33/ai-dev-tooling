@@ -176,7 +176,7 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 
 | Skill | 路径 | 用途 |
 |-------|------|------|
-| harness-scan | `.agents/.skills/harness-scan/SKILL.md` | 盘点 + 分层 + baseline specs |
+| harness-scan | `.agents/.skills/harness-scan/SKILL.md` | 盘点 + 分层 |
 | harness-gate | `.agents/.skills/harness-gate/SKILL.md` | 设卡 |
 | harness-doc-garden | `.agents/.skills/harness-doc-garden/SKILL.md` | 安装维护基础设施 |
 | timely-doc-garden | `.agents/.skills/timely-doc-garden/SKILL.md` | 文档一致性扫描+修复 |
@@ -186,7 +186,6 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | 产出 | 路径 | 来源 |
 |------|------|------|
 | 项目知识 | `AGENTS.md` + `docs/` | Harness Init |
-| Baseline Specs | `openspec/specs/<capability>/spec.md` | harness-scan（自动生成，存量项目现状描述）|
 | 债务清单 | `KNOWN_DEBTS.md` | harness-gate（按优先级分类 + 修复方法） |
 | OpenSpec 制品 | `openspec/` | OpenSpec |
 | 执行计划 | `.sisyphus/plans/` | OmO |
