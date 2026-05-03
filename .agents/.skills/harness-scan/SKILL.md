@@ -4,7 +4,8 @@ description: >
   Deep project inventory + layered documentation for brownfield projects.
   Combines init-deep (structure scan + hierarchical AGENTS.md generation) with
   AI-powered supplementary scanning (credential detection, implicit knowledge mining,
-  multi-repo drift detection) and generates a human confirmation questionnaire.
+  multi-repo drift detection), OpenSpec baseline spec generation, and a human
+  confirmation questionnaire.
   Use when: onboarding an existing project for AI-assisted development (Harness Init steps 1-2).
   Triggers: "harness scan", "project inventory", "scan project", "项目盘点", "项目扫描",
   "harness init", "存量项目入场".
@@ -56,7 +57,7 @@ Phase 4: Finalize (apply questionnaire answers, validate)
 **TodoWrite ALL phases. Mark in_progress → completed in real-time.**
 ```
 TodoWrite([
-  { content: "Phase 1: Init-Deep Scan (structure + AGENTS.md)", status: "pending", priority: "high" },
+  { content: "Phase 1: Init-Deep Scan (structure + AGENTS.md + baseline specs)", status: "pending", priority: "high" },
   { content: "Phase 2: AI Supplementary Scan (credentials + implicit knowledge + drift)", status: "pending", priority: "high" },
   { content: "Phase 3: Human Confirmation Questionnaire", status: "pending", priority: "high" },
   { content: "Phase 4: Finalize (apply answers + validate)", status: "pending", priority: "medium" }
@@ -212,6 +213,80 @@ Create (if not existing):
 - Uncertain items marked `[TODO: confirm with team]`, never guess
 - Root ≤200 lines / <32KB
 - Subdirectory AGENTS.md only shows differences from parent
+
+### Step 1.6: Generate Baseline Specs (if OpenSpec initialized)
+
+If the project has `openspec/` directory (i.e., `openspec init` has been run), generate
+baseline specs that describe the **current state** of each module — not just incremental changes.
+
+**Why**: OpenSpec delta specs only describe what CHANGED in a feature. For a brownfield project,
+you need baseline specs that describe what the system already does, so future changes have
+accurate context to diff against.
+
+**Identify capabilities** from the WHERE TO LOOK table in AGENTS.md:
+
+```
+For each row in WHERE TO LOOK:
+  - If the "Location" maps to a distinct module directory → that's a capability
+  - Capability name = kebab-case of the module purpose (e.g., data-pipeline, backtest-engine)
+  - Skip if openspec/specs/<capability>/spec.md already exists (user may have written it)
+```
+
+**Spawn parallel agents** — one per capability, all at once:
+
+```
+For each identified capability:
+  task(
+    category="deep",
+    load_skills=[],
+    description="Write baseline spec: <capability>",
+    run_in_background=true,
+    prompt="""
+    ## TASK
+    Write a baseline spec for the `<capability>` capability of this project.
+
+    ## EXPECTED OUTCOME
+    A file at `openspec/specs/<capability>/spec.md` (under 200 lines) describing
+    the module's current behavior, interfaces, constraints, and dependencies.
+
+    ## REQUIRED TOOLS
+    Read, Write, Grep, Glob
+
+    ## MUST DO
+    1. Read these files (agent fills in specific paths from AGENTS.md WHERE TO LOOK):
+       - AGENTS.md (project overview)
+       - <module source files>
+       - <CLI handlers for this module>
+       - <config files for this module>
+
+    2. The spec MUST cover:
+       - **Overview**: What this module does (1-2 paragraphs)
+       - **Core Interfaces**: Key classes, functions, ABCs with signatures
+       - **Data Flow**: Input → processing → output
+       - **CLI Interface**: Related subcommands and flags
+       - **Internal API**: Key classes/functions with signatures
+       - **Constraints**: Assumptions, limitations, domain-specific rules
+       - **Dependencies**: Upstream and downstream module relationships
+
+    3. Write in English, technical documentation style.
+    4. Include actual file paths and function names as references.
+    5. Keep under 200 lines.
+
+    ## MUST NOT DO
+    - Do NOT modify any source code
+    - Do NOT run any tests or commands
+    - Do NOT reference line numbers (they drift)
+    """
+  )
+```
+
+**After all agents complete**:
+1. Verify each `openspec/specs/<capability>/spec.md` exists and is under 200 lines.
+2. List generated specs in the final report (Step 4.4).
+
+**Skip conditions**:
+- No `openspec/` directory → skip entirely (not using OpenSpec)
+- `openspec/specs/` already populated → only fill gaps, don't overwrite
 
 **Mark Phase 1 as completed.**
 
@@ -543,6 +618,11 @@ Files Generated:
   [OK] ./docs/architecture.md
   [OK] ./docs/development-guide.md
   [OK] ./KNOWN_DEBTS.md ({N} items: 🔴 H / 🟡 M / 🟢 L)
+
+Baseline Specs (if OpenSpec initialized):
+  [OK] openspec/specs/<capability-1>/spec.md ({N} lines)
+  [OK] openspec/specs/<capability-2>/spec.md ({N} lines)
+  ...
 
 Supplementary Scan:
   Security: {N} findings ({confirmed} confirmed, {false_positives} false positives)
