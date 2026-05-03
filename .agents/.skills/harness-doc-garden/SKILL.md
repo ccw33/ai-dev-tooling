@@ -194,7 +194,17 @@ exit 0  # Non-blocking: never block push
 EOF
 
 chmod +x .githooks/pre-commit .githooks/pre-push
+```
+
+**⚠️ CRITICAL: Activate git hooks (DO NOT SKIP)**
+
+```bash
 git config core.hooksPath .githooks
+```
+
+Verify activation:
+```bash
+git config core.hooksPath  # Should print ".githooks"
 ```
 
 Replace `<SKILL_DIR>` with the actual absolute path.
@@ -298,6 +308,7 @@ Scanning scope: AGENTS.md, README.md, docs/**/*.md, .sisyphus/rules/*.md, KNOWN_
 
 | Issue | Fix |
 |-------|-----|
+| Hooks not firing on commit/push | Run `git config core.hooksPath .githooks` — this step is required after writing hook files |
 | `opencode.json` already has `experimental.hook` | Merge manually — don't overwrite |
 | Husky already installed | Use Husky instead of `.githooks` |
 | launchctl load fails | Check plist syntax with `plutil -lint` |

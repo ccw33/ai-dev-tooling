@@ -301,7 +301,19 @@ bash .agents/.skills/timely-doc-garden/scripts/validate-refs.sh 2>/dev/null || t
 echo "✅ Pre-commit checks passed"
 EOF
 chmod +x .githooks/pre-commit
+```
+
+**⚠️ CRITICAL: Activate git hooks (DO NOT SKIP)**
+
+After writing hook files, you MUST activate them:
+
+```bash
 git config core.hooksPath .githooks
+```
+
+Verify activation:
+```bash
+git config core.hooksPath  # Should print ".githooks"
 ```
 
 #### Pre-push Hooks: Doc-garden scan (non-blocking)
@@ -523,6 +535,7 @@ Next Step: Run /harness-doc-garden to set up ongoing maintenance.
 
 ## Anti-Patterns
 
+- **Forgetting `git config core.hooksPath .githooks`**: Hook files in `.githooks/` are inert until activated. ALWAYS run `git config core.hooksPath .githooks` after writing hook files and verify with `git config core.hooksPath`.
 - **Enabling strict mode on day one**: Hundreds of errors → team abandons the system. ALWAYS use freeze-ratchet.
 - **Gates without CI**: Local hooks can be bypassed with `--no-verify`. Mirror gates in CI.
 - **Too many gates at once**: Start with 2-3 low-friction gates, add more over time.
