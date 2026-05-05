@@ -139,6 +139,31 @@ describe('Login Form Validation', () => {
 });
 ```
 
+**Browser Mode 版本**（新项目推荐）：
+
+```typescript
+// Browser Mode: 真实浏览器渲染，import 来自 vitest-browser-react
+import { render } from 'vitest-browser-react';
+import { page } from '@vitest/browser/context';
+import { describe, test, expect } from 'vitest';
+import { LoginForm } from './LoginForm';
+
+describe('Login Form Validation', () => {
+  test('shows error when email is invalid', async () => {
+    // GIVEN (Arrange)
+    render(<LoginForm onSubmit={vi.fn()} />);
+
+    // WHEN (Act) — Browser Mode 使用 page 对象交互
+    await page.getByLabelText(/email/i).fill('invalid-email');
+    await page.getByRole('button', { name: /submit/i }).click();
+
+    // THEN (Assert) — Browser Mode 使用 expect.element()
+    const alert = page.getByRole('alert');
+    await expect.element(alert).toHaveTextContent('Invalid email');
+  });
+});
+```
+
 ### 6.6 E2E Test 映射示例
 
 **Spec**：
