@@ -47,15 +47,22 @@ The test maps directly:
 ```typescript
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, test, expect, vi } from 'vitest';
 import { LoginPage } from './LoginPage';
 import { AuthProvider } from '../providers/AuthProvider';
 
+// vi.mock MUST be at module scope — Vitest hoists it automatically
+vi.mock('../api/auth', () => ({
+  login: vi.fn().mockResolvedValue({ token: 'fake-token' }),
+}));
+
+vi.mock('react-router-dom', () => ({
+  ...vi.importActual('react-router-dom'),
+  useNavigate: () => vi.fn(),
+}));
+
 // GIVEN: Arrange helper
 function renderLoginPage() {
-  vi.mock('../api/auth', () => ({
-    login: vi.fn().mockResolvedValue({ token: 'fake-token' }),
-  }));
   return render(
     <AuthProvider>
       <LoginPage />
@@ -64,19 +71,20 @@ function renderLoginPage() {
 }
 
 describe('User Login', () => {
-  it('successful login', async () => {
+  test('successful login', async () => {
     // GIVEN (Arrange)
     const user = userEvent.setup();
     renderLoginPage();
 
     // WHEN (Act)
-    await user.type(screen.getByLabel('Email'), 'user@example.com');
-    await user.type(screen.getByLabel('Password'), 'valid-password');
+    await user.type(screen.getByLabelText('Email'), 'user@example.com');
+    await user.type(screen.getByLabelText('Password'), 'valid-password');
     await user.click(screen.getByRole('button', { name: /log in/i }));
 
-    // THEN (Assert)
+    // THEN (Assert) — check navigation via mocked router
+    const navigate = vi.mocked(require('react-router-dom').useNavigate)();
     await waitFor(() => {
-      expect(window.location.pathname).toBe('/dashboard');
+      expect(navigate).toHaveBeenCalledWith('/dashboard');
     });
 
     // AND (Additional Assert)
@@ -88,7 +96,7 @@ describe('User Login', () => {
 Run the test. It must fail (RED):
 
 ```bash
-pnpm vitest run src/components/LoginPage/__tests__/LoginPage.test.tsx
+npx vitest run src/components/LoginPage/__tests__/LoginPage.test.tsx
 ```
 
 ### GREEN Phase: Minimum Implementation
@@ -109,7 +117,7 @@ Do not refactor. Just make it green.
 Run the test again. It must pass (GREEN):
 
 ```bash
-pnpm vitest run src/components/LoginPage/__tests__/LoginPage.test.tsx
+npx vitest run src/components/LoginPage/__tests__/LoginPage.test.tsx
 ```
 
 ### REFACTOR Phase: Clean Up
@@ -157,7 +165,7 @@ Use it during the RED and REFACTOR phases:
 **When to load it:**
 
 ```
-/load frontend-testing
+/frontend-testing
 ```
 
 ### e2e-testing skill
@@ -171,7 +179,7 @@ Use it when writing E2E tests in the TDD cycle:
 **When to load it:**
 
 ```
-/load e2e-testing
+/e2e-testing
 ```
 
 ## Mutation Testing with StrykerJS
@@ -181,14 +189,14 @@ Mutation testing verifies that your tests actually catch bugs. It mutates your c
 ### Setup
 
 ```bash
-pnpm add -D @stryker-mutator/core @stryker-mutator/vitest-runner
+npm install -D @stryker-mutator/core @stryker-mutator/vitest-runner
 ```
 
 Create `stryker.config.json`:
 
 ```json
 {
-  "packageManager": "pnpm",
+  "packageManager": "npm",
   "reporters": ["html", "clear-text", "progress"],
   "testRunner": "vitest",
   "vitest": {
@@ -215,8 +223,10 @@ Create `stryker.config.json`:
 ### Running
 
 ```bash
-pnpm stryker run
+npx stryker run
 ```
+
+**Note**: The setup above uses `@stryker-mutator/vitest-runner` for unit/integration tests. E2E tests (Playwright) can also be mutation-tested with `@stryker-mutator/playwright-runner`, but this is significantly slower and rarely worth the cost — E2E tests already run against real browser behavior. Focus mutation testing on unit and integration tests where AI-generated assertions are most likely to be weak.
 
 ### When to Run It
 
