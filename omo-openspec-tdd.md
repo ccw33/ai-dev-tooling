@@ -103,10 +103,12 @@ openspec init . --tools opencode && oinit   # 初始化
 ### 3.4 开始实现
 
 ```bash
-/opsx-apply     # Atlas 读 tasks.md，分派 Agent，TDD 流程：RED → GREEN → REFACTOR
+/opsx-apply     # Atlas 读 tasks.md，根据测试类型自动加载 frontend-testing 或 e2e-testing skill
 openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致性）
 /opsx-archive   # Delta Spec 合并到主 Spec（复合学习）
 ```
+
+`opsx-apply` TDD 周期中，Agent 按 [tdd-mapping.md](./omo-openspec-tdd/tdd-mapping.md) §6.4 加载对应 skill：组件/hook → `/frontend-testing`，跨页流程 → `/e2e-testing`。
 
 ### 3.5 日常维护
 
@@ -121,7 +123,6 @@ openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致
 | 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |
 
 > 📖 三层 Hook 安装配置 → [hook-config.md](./omo-openspec-tdd/hook-config.md)
-
 ### 3.6 扩展命令（CLI 直接调用）
 
 ```bash
@@ -137,7 +138,7 @@ openspec list                 # 列出活跃 changes
 ## 四、TDD 的 Spec → Test 映射
 
 GIVEN→Arrange, WHEN→Act, THEN→Assert. Scenario→`test_<snake_case>`, Requirement→`describe()`.
-tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
+测试类型分流：组件/hook → unit test (`/frontend-testing`)，跨页流程 → E2E (`/e2e-testing`)。
 
 > 📖 完整映射规则 + 示例 → [tdd-mapping.md](./omo-openspec-tdd/tdd-mapping.md)
 
