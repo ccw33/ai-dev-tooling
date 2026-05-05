@@ -33,6 +33,7 @@ testing-setup-guide/          ← Child docs (per-scenario setup instructions)
 | `frontend-testing` | Vitest + React Testing Library patterns, AI anti-patterns, coverage/CI |
 | `e2e-testing` | Playwright E2E testing: POM, fixtures, selectors, CI config |
 | `dev-tooling-feedback` | Report issues from other projects → fix source here |
+| `knowledge-exploration` | 8-step methodology for researching new domains and creating skills/docs |
 
 All skills are registered globally via symlinks in `~/.agents/skills/`. **Source of truth is this repo**, not the global dir.
 
