@@ -2,17 +2,12 @@
 name: omo-openspec-tdd
 description: >
   OmO + OpenSpec + TDD + Harness Init 四层AI编程体系。
-  Core reference for AI-assisted development: architecture, quick-start, TDD mapping, troubleshooting.
-  Use when: onboarding an existing project for AI, starting new features, understanding the 4-layer system.
-  Triggers: "omo", "openspec", "tdd", "harness", "四层体系", "AI编程体系".
+  Quick-start, TDD mapping, troubleshooting. Triggers: "omo", "openspec", "tdd", "harness".
 ---
 
 # OmO + OpenSpec + TDD + Harness Init：四层 AI 编程体系
 
-> 最后更新：2026-05-01 | 适用：macOS + OpenCode + Oh-My-OpenAgent
-> OpenSpec 版本：1.3.1 | OmO 版本：3.17.x
-
----
+> 最后更新：2026-05-05 | 适用：macOS + OpenCode + Oh-My-OpenAgent | OpenSpec 1.3.1 | OmO 3.17.x
 
 ## 一、为什么是这四个？
 
@@ -30,35 +25,28 @@ description: >
 **协作关系**：
 
 ```
-                    ┌─── Harness Init（一次性入场）───┐
-                    │ 盘点 → 分层 → 设卡 → 维护        │
-                    │ ↓ 产出: AGENTS.md + docs/ + 闸门  │
-                    └──────────────┬───────────────────┘
-                                   │
-                                   ▼
-OpenSpec 定义需求 ─────→ TDD 把需求变成测试 ─────→ OmO 编排 Agent 写代码通过测试
-       ↑                        │                            │
-       └── archive 合并学习 ←─── verify 验证覆盖 ←─── apply 实现并验证
+              ┌─── Harness Init（一次性入场）───┐
+              │ 盘点 → 分层 → 设卡 → 维护        │
+              │ ↓ 产出: AGENTS.md + docs/ + 闸门  │
+              └──────────────┬───────────────────┘
+                             │
+              ┌──────────────┴───────────────┐
+              │ 补测试基线（testing skills）   │  ← 存量项目：逆向从代码生成测试
+              │ project-discovery → 写测试     │
+              └──────────────┬───────────────┘
+                             │
+OpenSpec 定义需求 ──→ TDD 把需求变成测试 ──→ OmO 编排 Agent 写代码通过测试
+       ↑                      │                          │
+       └── archive ←─── verify 验证覆盖 ←─── apply 实现并验证
 ```
 
 > 📖 **深入理解**：为什么这四个能搭在一起？边界在哪？→ [integration-analysis.md](./omo-openspec-tdd/integration-analysis.md)
 
 ---
 
-## 二、系统架构
+## 二、环境配置
 
-| 层 | 工具 | 角色 |
-|----|------|------|
-| 0 | Harness Init | 盘点→分层→设卡→维护（一次性）→ [harness-init-guide.md](./omo-openspec-tdd/harness-init-guide.md) |
-| 1 | OpenSpec | 规范驱动：`openspec/specs/` + `changes/<feature>/` |
-| 2 | OmO | Agent 编排：Sisyphus→Prometheus→Atlas + Oracle/Metis/Momus |
-| 3 | TDD | 质量闸门：RED→GREEN→REFACTOR |
-
----
-
-## 三、环境配置
-
-### 3.1 安装
+### 2.1 安装
 
 ```bash
 bunx oh-my-openagent doctor        # 检查 OmO
@@ -66,15 +54,15 @@ npm install -g @fission-ai/openspec@latest && openspec --version  # OpenSpec ≥
 mkdir -p ~/.sisyphus/rules && cp rules/delegation-guardrails.md ~/.sisyphus/rules/  # 解锁多 agent 并行分派
 ```
 
-### 3.2 TDD Schema
+### 2.2 TDD Schema
 
 详见 [openspec-tdd-setup.md](./openspec-tdd-setup.md)。关键文件：`~/.local/share/openspec/schemas/tdd-driven/`。补丁脚本 `~/.local/bin/openspec-tdd`（别名 `oinit`）在 `openspec init` 后运行，切换为 `schema: tdd-driven`。
 
 ---
 
-## 四、快速上手
+## 三、快速上手
 
-### 4.1 存量项目首次接入（一次性）
+### 3.1 存量项目首次接入（一次性）
 
 ```bash
 /harness-scan          # 盘点 + 分层 + AI 补充扫描 + 人工确认问卷
@@ -85,7 +73,21 @@ mkdir -p ~/.sisyphus/rules && cp rules/delegation-guardrails.md ~/.sisyphus/rule
 > 📖 每步做什么、为什么、产出是什么 → [harness-init-guide.md](./omo-openspec-tdd/harness-init-guide.md)
 > 📖 三层 Hook 详细配置 → [hook-config.md](./omo-openspec-tdd/hook-config.md)
 
-### 4.2 启动新功能
+### 3.2 存量项目补测试基线（Harness Init 之后、OpenSpec 之前）
+
+Harness Init 完成后，存量项目通常缺测试。在进 OpenSpec 之前，先补上基线：
+
+1. `/frontend-testing` 或 `/e2e-testing` → `project-discovery` 逆向分析测试目标
+2. **人工审核测试计划**：确认优先级、补充业务关键场景、调整范围
+3. 按确认后的计划写测试：Smoke → Critical Path → Edge Case
+4. **人工审核测试代码**：确认断言有意义、选择器有韧性、无过度 mock
+5. `npx stryker run` → **人工审核 mutation report**
+
+"人工"步骤不可跳过：AI 不知道哪些流程是收入关键，无法判断 mutation 存活是真问题还是误报。
+
+> 📖 测试框架搭建指南 → [testing-setup-guide.md](./testing-setup-guide.md)
+
+### 3.3 启动新功能
 
 ```bash
 openspec init . --tools opencode && oinit   # 初始化
@@ -98,7 +100,7 @@ openspec init . --tools opencode && oinit   # 初始化
 
 > 📖 完整工作流示例（2FA）→ [workflow-example.md](./omo-openspec-tdd/workflow-example.md)
 
-### 4.3 开始实现
+### 3.4 开始实现
 
 ```bash
 /opsx-apply     # Atlas 读 tasks.md，分派 Agent，TDD 流程：RED → GREEN → REFACTOR
@@ -106,7 +108,7 @@ openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致
 /opsx-archive   # Delta Spec 合并到主 Spec（复合学习）
 ```
 
-### 4.4 日常维护
+### 3.5 日常维护
 
 `/harness-doc-garden` 安装完成后，三层 Hook 自动运行，无需手动操作：
 
@@ -118,27 +120,21 @@ openspec validate <change-name>  # 规范验证（完整性 + 正确性 + 一致
 | git push 时 | scan→fix→warn 修不了的 | git pre-push |
 | 每周（定时） | 全量扫描 + AI 修复 | cron/launchd |
 
-如需手动触发单次扫描：
-
-```bash
-/timely-doc-garden              # 手动运行扫描+修复（等同于定时任务的一次执行）
-```
-
 > 📖 三层 Hook 安装配置 → [hook-config.md](./omo-openspec-tdd/hook-config.md)
 
-### 4.5 扩展命令（CLI 直接调用）
+### 3.6 扩展命令（CLI 直接调用）
 
 ```bash
-openspec new change <name>    # 建脚手架，不自动生成制品
-openspec validate <name>      # 验证规范完整性 + 正确性 + 一致性
-openspec archive <name>       # 归档完成的 change，Delta Specs 合入主 Spec
+openspec new change <name>    # 建脚手架
+openspec validate <name>      # 验证完整性 + 正确性 + 一致性
+openspec archive <name>       # Delta Specs 合入主 Spec
 openspec show <name>          # 查看 change 详情
-openspec list                 # 列出所有活跃 changes
+openspec list                 # 列出活跃 changes
 ```
 
 ---
 
-## 五、TDD 的 Spec → Test 映射
+## 四、TDD 的 Spec → Test 映射
 
 GIVEN→Arrange, WHEN→Act, THEN→Assert. Scenario→`test_<snake_case>`, Requirement→`describe()`.
 tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
@@ -147,20 +143,18 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 
 ---
 
-## 六、故障排查
+## 五、故障排查
 
 | 问题 | 解决 |
 |------|------|
 | `openspec init` 后 schema 是 `spec-driven` | 运行 `oinit` |
-| Agent 在规划阶段写代码 | 规划阶段只允许编辑 `openspec/` |
-| 测试在 Verify RED 阶段就通过了 | 检查测试是否有具体断言 |
+| 存量项目开 strict 后构建全红 | `/harness-gate` 冻结-棘轮法 |
 | Agent 忽略 AGENTS.md 规则 | `/harness-gate` 把规则变成 lint/test |
-| 存量项目开 strict 后构建全红 | `/harness-gate` 用冻结-棘轮法 |
-| Skill 导致 Agent 串行执行 | 安装 delegation-guardrails rule（§3.1）|
+| 测试在 Verify RED 阶段就通过了 | 检查测试是否有具体断言 |
 
 ---
 
-## 七、文档索引
+## 六、文档索引
 
 ### 参考文档（按需加载）
 
@@ -172,6 +166,7 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | [tdd-mapping.md](./omo-openspec-tdd/tdd-mapping.md) | TDD Spec→Test 映射规则 + 示例 | 每次 propose 功能时 |
 | [hook-config.md](./omo-openspec-tdd/hook-config.md) | 三层 Hook 体系详细配置 | 安装维护基础设施 |
 | [openspec-tdd-setup.md](./openspec-tdd-setup.md) | TDD Schema 安装配置 | 环境搭建 |
+| [testing-setup-guide.md](./testing-setup-guide.md) | 测试框架搭建指南（新/存量项目） | 补测试基线时 |
 
 ### AI Skills（自动加载）
 
@@ -182,6 +177,8 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | harness-gate | `.agents/.skills/harness-gate/SKILL.md` | 设卡 |
 | harness-doc-garden | `.agents/.skills/harness-doc-garden/SKILL.md` | 安装维护基础设施 |
 | timely-doc-garden | `.agents/.skills/timely-doc-garden/SKILL.md` | 文档一致性扫描+修复 |
+| frontend-testing | `.agents/.skills/frontend-testing/SKILL.md` | Vitest + RTL 组件/ hooks 测试 |
+| e2e-testing | `.agents/.skills/e2e-testing/SKILL.md` | Playwright E2E 测试 |
 
 ### 项目内产出
 
@@ -193,9 +190,10 @@ tasks.md 闸门：首组必须 Verify RED，末组必须 REFACTOR。
 | OpenSpec 制品 | `openspec/` | OpenSpec |
 | 执行计划 | `.sisyphus/plans/` | OmO |
 | 维护报告 | `.sisyphus/doc-garden-report.md` | timely-doc-garden |
+| 测试代码 | `src/**/*.test.{ts,tsx}` + `e2e/**/*.spec.ts` | frontend-testing / e2e-testing |
 
 ---
 
-## 八、参考链接
+## 七、参考链接
 
 - [OpenSpec](https://github.com/Fission-AI/OpenSpec) — SDD 框架 · [OmO](https://github.com/code-yeongyu/oh-my-openagent) — Agent 编排 · [Open Specification](https://open-specification.org/) — 规范标准
