@@ -107,10 +107,15 @@ rules:
     - Tests MUST be written BEFORE implementation
     - Use GIVEN/WHEN/THEN naming in test structure
     - Run tests to verify RED before implementing
+    - "Test Type Gate: Classify each scenario by test type. Decision tree: (1) Scenario mentions web page, HTML, browser, HTTP endpoint (GET/POST /path), forms, or UI elements → Playwright E2E test. (2) Scenario mentions React/Vue components, props, state, hooks → Vitest + RTL unit test. (3) Scenario mentions Python module, data pipeline, ML model, CLI → pytest. (4) Default: match project's primary language (Python→pytest, JS/TS→Vitest)."
+    - "E2E tests MUST follow /e2e-testing skill patterns: Page Object Model, getByRole/getByText selectors (not CSS selectors or test-id), custom fixtures, resilient waits. curl-only verification is NOT acceptable for web UI scenarios."
+    - "Frontend unit tests MUST follow /frontend-testing skill patterns: render + userEvent, getByRole queries, avoid test-id, no empty catch blocks, no `as any` type casts."
   tasks:
     - First task group MUST be "Verify RED"
     - Each implementation task group ends with "Run tests"
     - Last task group is "REFACTOR"
+    - "E2E Server Gate: If any test is Playwright E2E → MUST include 'Start web server' as a prerequisite task before E2E tests run, and 'Stop web server' as a cleanup task after E2E tests complete."
+    - "E2E Run Gate: Each web-related implementation task group MUST end with: 'Run npx playwright test — confirm E2E progress'. Do NOT use curl as the only verification for web endpoints."
 ```
 
 ---
