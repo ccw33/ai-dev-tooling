@@ -112,6 +112,7 @@ rules:
     - "Frontend unit tests MUST follow /frontend-testing skill patterns: render + userEvent, getByRole queries, avoid test-id, no empty catch blocks, no `as any` type casts."
   tasks:
     - First task group MUST be "Verify RED"
+    - "Coverage Audit (MANDATORY): As the FIRST step of 'Verify RED', enumerate all spec files under specs/*/. For each spec, count scenarios (lines matching '#### Scenario:'). Then enumerate all test files under tests/*. Build a coverage matrix: spec → scenario count → test file → test function count. If ANY spec has scenarios but NO corresponding test file, add a blocking task: 'Create test file for specs/<spec-name>/spec.md — N scenarios uncovered'. Do NOT proceed to implementation until all specs have test coverage."
     - Each implementation task group ends with "Run tests"
     - Last task group is "REFACTOR"
     - "E2E Server Gate: If any test is Playwright E2E → MUST include 'Start web server' as a prerequisite task before E2E tests run, and 'Stop web server' as a cleanup task after E2E tests complete."

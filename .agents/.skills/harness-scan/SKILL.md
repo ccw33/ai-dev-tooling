@@ -191,6 +191,12 @@ NEVER use Write to overwrite an existing file.
 ## COMMANDS
 {dev/test/build}
 
+## TESTING STRATEGY
+
+详见 [docs/testing-strategy.md](docs/testing-strategy.md)。
+- {test framework} + {test layers: unit / integration / output / e2e}
+- 新 CLI subcommand / 新模块各有 checklist
+
 ## NOTES
 {Gotchas}
 ```
@@ -204,6 +210,7 @@ NEVER use Write to overwrite an existing file.
 Create (if not existing):
 - `docs/architecture.md` — layer structure, infrastructure integration
 - `docs/development-guide.md` — environment setup, local dev, testing, deployment
+- `docs/testing-strategy.md` — test framework, test layers (unit/integration/output/e2e), new subcommand/module checklists
 - `docs/api-contracts.md` — API spec index
 - `docs/adr/` — architecture decision records (each ≤40 lines, must have source code references)
 
