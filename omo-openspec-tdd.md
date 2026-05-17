@@ -1,17 +1,17 @@
 ---
 name: omo-openspec-tdd
 description: >
-  OmO + OpenSpec + TDD + Harness Init 四层AI编程体系。
-  Quick-start, TDD mapping, troubleshooting. Triggers: "omo", "openspec", "tdd", "harness".
+  OmO + OpenSpec + TDD + Harness Init + 行为纪律 Rules 五层AI编程体系。
+  Quick-start, TDD mapping, troubleshooting. Triggers: "omo", "openspec", "tdd", "harness", "superpowers".
 ---
 
-# OmO + OpenSpec + TDD + Harness Init：四层 AI 编程体系
+# OmO + OpenSpec + TDD + Harness Init + 行为纪律：五层 AI 编程体系
 
-> 最后更新：2026-05-05 | 适用：macOS + OpenCode + Oh-My-OpenAgent | OpenSpec 1.3.1 | OmO 3.17.x
+> 最后更新：2026-05-17 | 适用：macOS + OpenCode + Oh-My-OpenAgent | OpenSpec 1.3.1 | OmO 4.1.x
 
-## 一、为什么是这四个？
+## 一、为什么是这五个？
 
-四个工具各管一层，正交互补，不重叠：
+四个工具各管一层，行为纪律横切贯穿：
 
 | 工具 | 角色 | 回答的问题 | 适用时机 |
 |------|------|-----------|---------|
@@ -19,28 +19,19 @@ description: >
 | **OpenSpec** | 产品经理 + QA | 做什么？怎么验证对不对？ | 每个新功能的规划 |
 | **OmO** | 技术总监 + 开发团队 | 谁来做？怎么编排？ | 每个新功能的执行 |
 | **TDD** | 质量闸门 | 代码是不是按要求写的？ | 贯穿实现全过程 |
-
-**核心理念**：Harness Init 建地基，OpenSpec 的 Scenario（GIVEN/WHEN/THEN）就是测试用例的草稿，TDD 把草稿变成可执行的红灯，OmO 带团队把红灯变绿灯。
+| **行为纪律 Rules** | 纪律教官 | 怎么守规矩？别偷懒？ | 横切贯穿 TDD + OmO 执行全过程 |
 
 **协作关系**：
 
 ```
-              ┌─── Harness Init（一次性入场）───┐
-              │ 盘点 → 分层 → 设卡 → 维护        │
-              │ ↓ 产出: AGENTS.md + docs/ + 闸门  │
-              └──────────────┬───────────────────┘
-                             │
-              ┌──────────────┴───────────────┐
-              │ 补测试基线（testing skills）   │  ← 存量项目：逆向从代码生成测试
-              │ project-discovery → 写测试     │
-              └──────────────┬───────────────┘
-                             │
-OpenSpec 定义需求 ──→ TDD 把需求变成测试 ──→ OmO 编排 Agent 写代码通过测试
-       ↑                      │                          │
-       └── archive ←─── verify 验证覆盖 ←─── apply 实现并验证
+Harness Init（一次性入场）→ AGENTS.md + docs/ + 闸门
+            ↓
+OpenSpec 定义需求（brainstorm 聊清 → propose 写定）→ TDD 变成测试 → OmO 编排 Agent 通过测试
+     ↑                 ↑ 行为纪律 Rules              │
+     └── archive ← verify ←─── apply（Iron Law + 审查 + 证据先行）
 ```
 
-> 📖 **深入理解**：为什么这四个能搭在一起？边界在哪？→ [integration-analysis.md](./omo-openspec-tdd/integration-analysis.md)
+> 📖 深入理解：为什么这五个能搭在一起？→ [integration-analysis.md](./omo-openspec-tdd/integration-analysis.md)
 
 ---
 
@@ -51,7 +42,7 @@ OpenSpec 定义需求 ──→ TDD 把需求变成测试 ──→ OmO 编排 A
 ```bash
 bunx oh-my-openagent doctor        # 检查 OmO
 npm install -g @fission-ai/openspec@latest && openspec --version  # OpenSpec ≥1.3.1
-mkdir -p ~/.sisyphus/rules && cp rules/delegation-guardrails.md ~/.sisyphus/rules/  # 解锁多 agent 并行分派
+bash ~/Desktop/Project/dev-tooling/rules/install-rules.sh  # 行为纪律 Rules（改为你本机的 dev-tooling 路径）
 ```
 
 ### 2.2 TDD Schema
@@ -75,15 +66,11 @@ mkdir -p ~/.sisyphus/rules && cp rules/delegation-guardrails.md ~/.sisyphus/rule
 
 ### 3.2 存量项目补测试基线（Harness Init 之后、OpenSpec 之前）
 
-Harness Init 完成后，存量项目通常缺测试。在进 OpenSpec 之前，先补上基线：
-
 1. `/frontend-testing` 或 `/e2e-testing` → `project-discovery` 逆向分析测试目标
-2. **人工审核测试计划**：确认优先级、补充业务关键场景、调整范围
-3. 按确认后的计划写测试：Smoke → Critical Path → Edge Case
-4. **人工审核测试代码**：确认断言有意义、选择器有韧性、无过度 mock
-5. `npx stryker run` → **人工审核 mutation report**
+2. **人工审核测试计划** → 按计划写测试：Smoke → Critical Path → Edge Case
+3. `npx stryker run` → **人工审核 mutation report**
 
-"人工"步骤不可跳过：AI 不知道哪些流程是收入关键，无法判断 mutation 存活是真问题还是误报。
+"人工"步骤不可跳过：AI 不知道哪些流程是收入关键。
 
 > 📖 测试框架搭建指南 → [testing-setup-guide.md](./testing-setup-guide.md)
 
@@ -93,10 +80,11 @@ Harness Init 完成后，存量项目通常缺测试。在进 OpenSpec 之前，
 openspec init . --tools opencode && oinit   # 初始化
 /opsx-baseline-specs                         # 存量项目：根据 AGENTS.md 生成 baseline specs（一次性，新项目跳过）
 /opsx-explore                                # 探索现有代码
+/opsx-brainstorm <feature-name>              # 苏格拉底式 Q&A 聊清需求 + 选方案（每 propsoe 前必做）
 /opsx-propose <feature-name>                 # 生成 proposal/specs/design/tests/tasks
 ```
 
-规划阶段**只读代码、只写 spec 文件**，不写实现代码。
+规划阶段**只读代码、只写 spec 文件**，不写实现代码。`/opsx-brainstorm` 是 propose 前的**必经环节**——一次问答省数小时返工。
 
 > 📖 完整工作流示例（2FA）→ [workflow-example.md](./omo-openspec-tdd/workflow-example.md)
 
@@ -175,11 +163,23 @@ GIVEN→Arrange, WHEN→Act, THEN→Assert. Scenario→`test_<snake_case>`, Requ
 |-------|------|------|
 | harness-scan | `.agents/.skills/harness-scan/SKILL.md` | 盘点 + 分层 |
 | opsx-baseline-specs | `.agents/.skills/opsx-baseline-specs/SKILL.md` | 存量项目 baseline spec 生成 |
+| opsx-brainstorm | `.agents/.skills/opsx-brainstorm/SKILL.md` | propose 前苏格拉底式需求讨论 |
 | harness-gate | `.agents/.skills/harness-gate/SKILL.md` | 设卡 |
 | harness-doc-garden | `.agents/.skills/harness-doc-garden/SKILL.md` | 安装维护基础设施 |
 | timely-doc-garden | `.agents/.skills/timely-doc-garden/SKILL.md` | 文档一致性扫描+修复 |
 | frontend-testing | `.agents/.skills/frontend-testing/SKILL.md` | Vitest + RTL 组件/ hooks 测试 |
 | e2e-testing | `.agents/.skills/e2e-testing/SKILL.md` | Playwright E2E 测试 |
+
+### 行为纪律 Rules（alwaysApply，无需 load_skills）
+
+| Rule | 路径 | 用途 | 来源 |
+|------|------|------|------|
+| delegation-guardrails | `rules/delegation-guardrails.md` | 防止 Skill 覆盖编排策略 | OmO 社区 |
+| tdd-iron-law | `rules/tdd-iron-law.md` | TDD 行为纪律 + 反合理化 | Superpowers |
+| two-stage-review | `rules/two-stage-review.md` | 两阶段代码审查（合规 + 质量） | Superpowers |
+| evidence-before-completion | `rules/evidence-before-completion.md` | 声称完成前必须提供证据 | Superpowers |
+
+> 💡 已有项目补装 Rules：`bash rules/install-rules.sh`
 
 ### 项目内产出
 
@@ -197,4 +197,4 @@ GIVEN→Arrange, WHEN→Act, THEN→Assert. Scenario→`test_<snake_case>`, Requ
 
 ## 七、参考链接
 
-- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — SDD 框架 · [OmO](https://github.com/code-yeongyu/oh-my-openagent) — Agent 编排 · [Open Specification](https://open-specification.org/) — 规范标准
+- [OpenSpec](https://github.com/Fission-AI/OpenSpec) — SDD 框架 · [OmO](https://github.com/code-yeongyu/oh-my-openagent) — Agent 编排 · [Superpowers](https://github.com/obra/superpowers) — 行为纪律 Rules 来源 · [Open Specification](https://open-specification.org/) — 规范标准

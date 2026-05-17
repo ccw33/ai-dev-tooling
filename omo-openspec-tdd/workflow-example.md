@@ -40,7 +40,31 @@ oinit                              # 如果还没切换过 tdd-driven
 
 Agent 调查现有认证系统、数据库结构、TOTP 库选型。此阶段不产出文件。
 
-### Step 2：提案
+### Step 2：头脑风暴（propose 前必做）
+
+```
+/opsx-brainstorm add-2fa
+```
+
+Agent 通过苏格拉底式问答逐步明确需求。示例对话：
+
+> **Agent**: 现有系统只用密码认证。你想加的 2FA 是给所有用户还是仅管理员？
+>
+> **User**: 所有用户，但默认关闭，用户自行开启。
+>
+> **Agent**: 2FA 方案：(A) TOTP（Google Authenticator 类 App）⭐推荐，(B) SMS 短信验证码，(C) 邮件验证码。推荐 A——无运营商成本、离线可用、安全强度最高。选哪个？
+>
+> **User**: A，TOTP。
+>
+> **Agent**: 备用恢复码需要吗？用户丢失设备时用恢复码登录。
+>
+> **User**: 需要，一次性恢复码，生成 10 个。
+>
+> **Agent**: 设计看起来清楚了。接下来我用 `/opsx-propose` 生成正式 spec。
+
+这个环节确保 propose 生成的 spec 真正对齐用户意图，而不是靠猜测。
+
+### Step 3：提案
 
 ```
 /opsx-propose add-2fa
@@ -220,6 +244,26 @@ Atlas 读取 tasks.md
 2. **自动验证**：每个任务完成后自动 `lsp_diagnostics` + `build` + `test`
 3. **失败恢复**：3 次失败 → revert → 咨询 Oracle
 4. **并行执行**：识别无依赖的任务并行分派（需要 `~/.sisyphus/rules/delegation-guardrails.md`，否则会退化为串行）
+5. **两阶段审查**：每个实现任务 GREEN 后，Atlas 派审查代理（two-stage-review Rule 自动生效）
+
+### 两阶段审查流程（行为纪律 Rule 自动注入）
+
+每个实现任务组（如"服务层""API 层"）到达 GREEN 后：
+
+```
+Stage 1: Spec 合规审查
+  Oracle/Momus (只读，不是实现者)
+  检查: 代码是否覆盖 specs/auth.md 中对应 Requirement 的所有 Scenario
+  结果: PASS → 进入 Stage 2 | FAIL → 实现者修复 → 重新 Stage 1
+
+Stage 2: 代码质量审查
+  另一个 Oracle/Momus (只读，且不同于 Stage 1)
+  检查: 命名、结构、错误处理、无 as any、无 AI slop
+  结果: PASS → 任务完成 | FAIL → 实现者修复 → 只重跑 Stage 2
+
+  ↓ 双 PASS
+  任务完成 → evidence-before-completion Rule: 贴出测试输出作为证据
+```
 
 ## 5.4 Phase 4：双重验证
 
